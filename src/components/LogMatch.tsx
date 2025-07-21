@@ -6,9 +6,10 @@ interface LogMatchProps {
   players: Player[];
   tournaments: Tournament[];
   selectedTournamentId: string;
+  onMatchLogged?: () => void;
 }
 
-export default function LogMatch({ players, tournaments, selectedTournamentId }: LogMatchProps) {
+export default function LogMatch({ players, tournaments, selectedTournamentId, onMatchLogged }: LogMatchProps) {
   const selectedTournament = tournaments.find(t => t.id === selectedTournamentId) || tournaments[0];
   
   const [formData, setFormData] = useState({
@@ -18,7 +19,7 @@ export default function LogMatch({ players, tournaments, selectedTournamentId }:
     team2: "",
     player1_goals: 0,
     player2_goals: 0,
-    tournament_id: selectedTournament.id,
+    tournament_id: selectedTournament?.id || "",
   });
 
   const teams = [
@@ -96,6 +97,10 @@ export default function LogMatch({ players, tournaments, selectedTournamentId }:
     )
       .then(() => {
         console.log("Match logged successfully");
+        // Call the callback to redirect to History tab
+        if (onMatchLogged) {
+          onMatchLogged();
+        }
       })
       .catch((error) => {
         console.error("Error logging match:", error);
@@ -106,7 +111,7 @@ export default function LogMatch({ players, tournaments, selectedTournamentId }:
     <div className="bg-[#1a1f2e] rounded-lg p-4 sm:p-6">
       <h2 className="text-xl sm:text-2xl font-bold mb-2">Log New Match</h2>
       <p className="text-gray-400 mb-4 sm:mb-6 text-sm sm:text-base">
-        Record a new FIFA match result for {selectedTournament.name}
+        Record a new FIFA match result for {selectedTournament?.name || 'the tournament'}
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
@@ -187,8 +192,13 @@ export default function LogMatch({ players, tournaments, selectedTournamentId }:
 
       <div className="mt-6">
         <button
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors text-sm sm:text-base"
+          className={`w-full font-medium py-3 px-4 rounded-lg transition-colors text-sm sm:text-base ${
+            !selectedTournament
+              ? 'bg-gray-500 cursor-not-allowed text-gray-300'
+              : 'bg-blue-500 hover:bg-blue-600 text-white'
+          }`}
           onClick={handleSubmit}
+          disabled={!selectedTournament}
         >
           Log Match
         </button>

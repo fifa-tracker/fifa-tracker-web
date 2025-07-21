@@ -2,9 +2,72 @@ import axios, { AxiosError } from 'axios';
 
 const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8000/api/v1';
 
+// Helper function to get access token from localStorage
+const getAccessToken = (): string | null => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('fifa-tracker-token');
+  }
+  return null;
+};
+
+// Helper function to validate token and refresh if needed
+const validateAndRefreshToken = async (): Promise<string | null> => {
+  const token = getAccessToken();
+  if (!token) {
+    return null;
+  }
+  
+  // You can add token expiration validation here if your tokens are JWTs
+  // For now, we'll just return the token and let the API handle 401 errors
+  return token;
+};
+
+// Helper function to create authenticated axios instance
+const createAuthenticatedRequest = () => {
+  const token = getAccessToken();
+  const config: any = {
+    baseURL: API_BASE_URL,
+  };
+  
+  if (token) {
+    config.headers = {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    };
+  }
+  
+  const axiosInstance = axios.create(config);
+  
+  // Add response interceptor to handle authentication errors
+  axiosInstance.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      if (error.response?.status === 401) {
+        // Try to refresh the token
+        const newToken = await refreshToken();
+        if (!newToken) {
+          // Token refresh failed, clear everything and redirect to login
+          localStorage.removeItem('fifa-tracker-token');
+          localStorage.removeItem('fifa-tracker-user');
+          localStorage.removeItem('fifa-tracker-refresh-token');
+          
+          // Redirect to login page if we're in a browser environment
+          if (typeof window !== 'undefined') {
+            window.location.href = '/auth';
+          }
+        }
+      }
+      return Promise.reject(error);
+    }
+  );
+  
+  return axiosInstance;
+};
+
 export async function getPlayers(): Promise<Player[]> {
   try {
-    const response = await axios.get(`${API_BASE_URL}/players`);
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.get('/players');
     return response.data.map((player: Player) => ({ name: player.name, id: player.id })); // Updated return statement
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -26,7 +89,8 @@ export async function getPlayers(): Promise<Player[]> {
 
 export async function recordMatch(player1_id: string, player2_id: string, team1: string, team2: string, player1_goals: number, player2_goals: number, tournament_id: string): Promise<Match | null> {
   try {
-    const response = await axios.post(`${API_BASE_URL}/matches`, {
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.post('/matches', {
       player1_id,
       player2_id,
       team1,
@@ -45,7 +109,8 @@ export async function recordMatch(player1_id: string, player2_id: string, team1:
 export async function getTable(): Promise<PlayerStats[]> {
   try {
     console.log('Attempting to fetch from:', `${API_BASE_URL}/stats`);
-    const response = await axios.get(`${API_BASE_URL}/stats`);
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.get('/stats');
     console.log('Successfully fetched stats:', response.data);
     return response.data;
   } catch (error) {
@@ -69,7 +134,8 @@ export async function getTable(): Promise<PlayerStats[]> {
 
 export async function getMatchHistory(): Promise<MatchResult[]> {
   try {
-    const response = await axios.get(`${API_BASE_URL}/matches`);
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.get('/matches');
     return response.data;
   } catch (error) {
     console.error('Error fetching match history:', error);
@@ -79,7 +145,8 @@ export async function getMatchHistory(): Promise<MatchResult[]> {
 
 export async function createPlayer(name: string): Promise<Player | null> {
   try {
-    const response = await axios.post(`${API_BASE_URL}/players`, { name });
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.post('/players', { name });
     return response.data;
   } catch (error) {
     console.error('Error creating player:', error);
@@ -95,8 +162,9 @@ export async function getHeadToHead(player1_id: string, player2_id: string): Pro
   player2_goals: number
 }> {
   try {
-    const response = await axios.get(
-      `${API_BASE_URL}/head-to-head/${player1_id}/${player2_id}`
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.get(
+      `/head-to-head/${player1_id}/${player2_id}`
     );
     return response.data;
   } catch (error) {
@@ -113,7 +181,8 @@ export async function getHeadToHead(player1_id: string, player2_id: string): Pro
 
 export async function deletePlayer(player_id: string): Promise<void> {
   try {
-    await axios.delete(`${API_BASE_URL}/player/${player_id}`);
+    const axiosInstance = createAuthenticatedRequest();
+    await axiosInstance.delete(`/player/${player_id}`);
   } catch (error) {
     console.error('Error deleting player:', error);
   }
@@ -121,7 +190,8 @@ export async function deletePlayer(player_id: string): Promise<void> {
 
 export async function updatePlayer(player_id: string, newName: string): Promise<void> {
   try {
-    await axios.put(`${API_BASE_URL}/player/${player_id}`, { name: newName });
+    const axiosInstance = createAuthenticatedRequest();
+    await axiosInstance.put(`/player/${player_id}`, { name: newName });
   } catch (error) {
     console.error('Error updating player:', error);
   }
@@ -129,7 +199,8 @@ export async function updatePlayer(player_id: string, newName: string): Promise<
 
 export async function updateMatch(match_id: string, player1_goals: number, player2_goals: number): Promise<void> {
   try {
-    await axios.put(`${API_BASE_URL}/matches/${match_id}`, { player1_goals, player2_goals });
+    const axiosInstance = createAuthenticatedRequest();
+    await axiosInstance.put(`/matches/${match_id}`, { player1_goals, player2_goals });
   } catch (error) {
     console.error('Error updating match:', error);
   }
@@ -137,7 +208,8 @@ export async function updateMatch(match_id: string, player1_goals: number, playe
 
 export async function deleteMatch(match_id: string): Promise<void> {
   try {
-    await axios.delete(`${API_BASE_URL}/matches/${match_id}`);
+    const axiosInstance = createAuthenticatedRequest();
+    await axiosInstance.delete(`/matches/${match_id}`);
   } catch (error) {
     console.error('Error deleting match:', error);
   }
@@ -145,7 +217,8 @@ export async function deleteMatch(match_id: string): Promise<void> {
 
 export async function getPlayerStats(player_id: string): Promise<DetailedPlayerStats | null> {
   try {
-    const response = await axios.get(`${API_BASE_URL}/players/${player_id}/stats`);
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.get(`/players/${player_id}/stats`);
     return response.data;
   } catch (error) {
     console.error('Error fetching player stats:', error);
@@ -155,7 +228,8 @@ export async function getPlayerStats(player_id: string): Promise<DetailedPlayerS
 
 export async function getTournaments(): Promise<Tournament[]> {
   try {
-    const response = await axios.get(`${API_BASE_URL}/tournaments`);
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.get('/tournaments');
     console.log('Tournaments:', response.data);
     return response.data;
   } catch (error) {
@@ -167,7 +241,8 @@ export async function getTournaments(): Promise<Tournament[]> {
 export async function createTournament(name: string, description: string, player_ids: string[]): Promise<Tournament | null> {
 
   try {
-    const response = await axios.post(`${API_BASE_URL}/tournaments`, { name, description, player_ids });
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.post('/tournaments', { name, description, player_ids });
     return response.data;
   } catch (error) {
     console.error('Error creating tournament:', error);
@@ -177,7 +252,8 @@ export async function createTournament(name: string, description: string, player
 
 export async function deleteTournament(tournament_id: string): Promise<void> {
   try {
-    await axios.delete(`${API_BASE_URL}/tournaments/${tournament_id}`);
+    const axiosInstance = createAuthenticatedRequest();
+    await axiosInstance.delete(`/tournaments/${tournament_id}`);
   } catch (error) {
     console.error('Error deleting tournament:', error);
   }
@@ -185,7 +261,8 @@ export async function deleteTournament(tournament_id: string): Promise<void> {
 
 export async function addPlayerToTournament(tournament_id: string, player_id: string): Promise<void> {
   try {
-    await axios.post(`${API_BASE_URL}/tournaments/${tournament_id}/players`, { player_id });
+    const axiosInstance = createAuthenticatedRequest();
+    await axiosInstance.post(`/tournaments/${tournament_id}/players`, { player_id });
   } catch (error) {
     console.error('Error adding player to tournament:', error);
   }
@@ -193,7 +270,8 @@ export async function addPlayerToTournament(tournament_id: string, player_id: st
 
 export async function removePlayerFromTournament(tournament_id: string, player_id: string): Promise<void> {
   try {
-    await axios.delete(`${API_BASE_URL}/tournaments/${tournament_id}/players/${player_id}`);
+    const axiosInstance = createAuthenticatedRequest();
+    await axiosInstance.delete(`/tournaments/${tournament_id}/players/${player_id}`);
   } catch (error) {
     console.error('Error removing player from tournament:', error);
   }
@@ -201,7 +279,8 @@ export async function removePlayerFromTournament(tournament_id: string, player_i
 
 export async function getTournamentPlayers(tournament_id: string): Promise<Player[]> {
   try {
-    const response = await axios.get(`${API_BASE_URL}/tournaments/${tournament_id}/players`);
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.get(`/tournaments/${tournament_id}/players`);
     return response.data;
   } catch (error) {
     console.error('Error fetching tournament players:', error);
@@ -211,7 +290,8 @@ export async function getTournamentPlayers(tournament_id: string): Promise<Playe
 
 export async function getTournamentMatches(tournament_id: string): Promise<MatchResult[]> {
   try {
-    const response = await axios.get(`${API_BASE_URL}/tournaments/${tournament_id}/matches`);
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.get(`/tournaments/${tournament_id}/matches`);
     return response.data;
   } catch (error) {
     console.error('Error fetching tournament matches:', error);
@@ -222,7 +302,8 @@ export async function getTournamentMatches(tournament_id: string): Promise<Match
 export async function getTournamentStandings(tournament_id: string): Promise<PlayerStats[]> {
 
   try {
-    const response = await axios.get(`${API_BASE_URL}/tournaments/${tournament_id}/stats`);
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.get(`/tournaments/${tournament_id}/stats`);
     return response.data;
   } catch (error) {
     console.error('Error fetching tournament standings:', error);
@@ -230,9 +311,92 @@ export async function getTournamentStandings(tournament_id: string): Promise<Pla
   }
 }
 
+export async function register(name: string, email: string, password: string, username?: string): Promise<User | null> {
+  try {
+    const payload = username 
+      ? { name, email, password, username }
+      : { name, email, password };
+    
+    const response = await axios.post(`${API_BASE_URL}/auth/register`, payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error registering:', error);
+    return null;
+  }
+}
+
+export async function login(identifier: string, password: string): Promise<User | null> {
+  try {
+    // The API expects username field, so we'll use the identifier as username
+    const payload = { username: identifier, password };
+    
+    const response = await axios.post(`${API_BASE_URL}/auth/login-json`, payload);
+    
+    // Store the access token if it's included in the response
+    if (response.data.access_token) {
+      localStorage.setItem('fifa-tracker-token', response.data.access_token);
+    }
+    
+    // Store refresh token if provided
+    if (response.data.refresh_token) {
+      localStorage.setItem('fifa-tracker-refresh-token', response.data.refresh_token);
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error('Error logging in:', error);
+    return null;
+  }
+}
+
+export async function refreshToken(): Promise<string | null> {
+  try {
+    const refreshToken = localStorage.getItem('fifa-tracker-refresh-token');
+    if (!refreshToken) {
+      return null;
+    }
+    
+    const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+      refresh_token: refreshToken
+    });
+    
+    if (response.data.access_token) {
+      localStorage.setItem('fifa-tracker-token', response.data.access_token);
+      return response.data.access_token;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Error refreshing token:', error);
+    // Clear tokens on refresh failure
+    localStorage.removeItem('fifa-tracker-token');
+    localStorage.removeItem('fifa-tracker-refresh-token');
+    return null;
+  }
+}
+
+export async function getCurrentUser(): Promise<User | null> {
+  try {
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.get('/auth/me');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching current user:', error);
+    return null;
+  }
+}
+
 export interface Player {
   name: string;
   id: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  username?: string;
+  access_token?: string;
 }
 
 export interface Match {
@@ -251,6 +415,9 @@ export interface Tournament {
   name: string;
   player_ids: string[];
   description: string;
+  completed: boolean;
+  start_date: string;
+  end_date: string;
 }
 
 export interface MatchResult  {

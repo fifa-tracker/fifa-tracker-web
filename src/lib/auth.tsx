@@ -1,19 +1,15 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-}
+import { login, User, getCurrentUser } from './api';
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<boolean>;
-  signUp: (name: string, email: string, password: string) => Promise<boolean>;
+  accessToken: string | null;
+  signIn: (identifier: string, password: string) => Promise<boolean>;
+  signUp: (name: string, email: string, password: string, username?: string) => Promise<boolean>;
   signOut: () => void;
 }
 
@@ -21,19 +17,32 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Check for existing session on app load
-    const checkAuth = () => {
+    const checkAuth = async () => {
       const savedUser = localStorage.getItem('fifa-tracker-user');
-      if (savedUser) {
+      const savedToken = localStorage.getItem('fifa-tracker-token');
+      
+      if (savedUser && savedToken) {
         try {
           const userData = JSON.parse(savedUser);
           setUser(userData);
+          setAccessToken(savedToken);
+          
+          // Fetch fresh user data from backend
+          const currentUser = await getCurrentUser();
+          if (currentUser) {
+            setUser(currentUser);
+            localStorage.setItem('fifa-tracker-user', JSON.stringify(currentUser));
+          }
         } catch (error) {
           console.error('Error parsing saved user data:', error);
           localStorage.removeItem('fifa-tracker-user');
+          localStorage.removeItem('fifa-tracker-token');
+          localStorage.removeItem('fifa-tracker-refresh-token');
         }
       }
       setIsLoading(false);
@@ -42,20 +51,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth();
   }, []);
 
-  const signIn = async (email: string, password: string): Promise<boolean> => {
+  const signIn = async (identifier: string, password: string): Promise<boolean> => {
     try {
-      // Simulate API call - replace with actual authentication
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const user = await login(identifier, password);
+      if (!user) {
+        return false;
+      }
       
-      // For demo purposes, accept any email/password combination
-      const userData: User = {
-        id: '1',
-        email,
-        name: email.split('@')[0], // Use email prefix as name for demo
-      };
+      // Get the access token from the response or localStorage
+      const token = user.access_token || localStorage.getItem('fifa-tracker-token');
       
-      setUser(userData);
-      localStorage.setItem('fifa-tracker-user', JSON.stringify(userData));
+      // Store refresh token if provided
+      if ((user as any).refresh_token) {
+        localStorage.setItem('fifa-tracker-refresh-token', (user as any).refresh_token);
+      }
+      
+      // Fetch complete user profile from backend
+      const currentUser = await getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
+        localStorage.setItem('fifa-tracker-user', JSON.stringify(currentUser));
+      } else {
+        // Fallback to login response data if getCurrentUser fails
+        const userData: User = {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          username: user.username,
+        };
+        setUser(userData);
+        localStorage.setItem('fifa-tracker-user', JSON.stringify(userData));
+      }
+      
+      setAccessToken(token);
+      if (token) {
+        localStorage.setItem('fifa-tracker-token', token);
+      }
       return true;
     } catch (error) {
       console.error('Sign in error:', error);
@@ -63,7 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUp = async (name: string, email: string, password: string): Promise<boolean> => {
+  const signUp = async (name: string, email: string, password: string, username?: string): Promise<boolean> => {
     try {
       // Simulate API call - replace with actual registration
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -72,10 +103,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: Date.now().toString(),
         email,
         name,
+        username,
       };
       
+      // For demo purposes, generate a mock token
+      const mockToken = `mock_token_${Date.now()}`;
+      
       setUser(userData);
+      setAccessToken(mockToken);
       localStorage.setItem('fifa-tracker-user', JSON.stringify(userData));
+      localStorage.setItem('fifa-tracker-token', mockToken);
       return true;
     } catch (error) {
       console.error('Sign up error:', error);
@@ -85,13 +122,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = () => {
     setUser(null);
+    setAccessToken(null);
     localStorage.removeItem('fifa-tracker-user');
+    localStorage.removeItem('fifa-tracker-token');
+    localStorage.removeItem('fifa-tracker-refresh-token');
   };
 
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
     isLoading,
+    accessToken,
     signIn,
     signUp,
     signOut,

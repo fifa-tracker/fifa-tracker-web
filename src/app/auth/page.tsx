@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { TrophyIcon } from '@/components/Icons';
 import { useAuth } from '@/lib/auth';
+import LoginForm from '@/components/LoginForm';
+import RegisterForm from '@/components/RegisterForm';
 
 export default function AuthPage() {
   const router = useRouter();
   const { signIn, signUp, isAuthenticated, isLoading: authLoading } = useAuth();
   const [isSignIn, setIsSignIn] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -18,6 +18,7 @@ export default function AuthPage() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    username: '',
     password: '',
     confirmPassword: '',
   });
@@ -57,11 +58,11 @@ export default function AuthPage() {
     setError('');
 
     try {
-      const success = await signIn(formData.email, formData.password);
+      const success = await signIn(formData.username, formData.password);
       if (success) {
         router.push('/');
       } else {
-        setError('Invalid email or password');
+        setError('Invalid username or password');
       }
     } catch (error) {
       setError('An error occurred during sign in');
@@ -82,7 +83,7 @@ export default function AuthPage() {
     }
 
     try {
-      const success = await signUp(formData.name, formData.email, formData.password);
+      const success = await signUp(formData.name, formData.email, formData.password, formData.username);
       if (success) {
         router.push('/');
       } else {
@@ -149,187 +150,27 @@ export default function AuthPage() {
 
             {/* Sign In Form */}
             {isSignIn && (
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Email</label>
-                  <div className="relative">
-                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    <input
-                      type="email"
-                      placeholder="Enter your email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="w-full bg-[#2d3748] border border-gray-600 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Password</label>
-                  <div className="relative">
-                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
-                      value={formData.password}
-                      onChange={(e) => handleInputChange('password', e.target.value)}
-                      className="w-full bg-[#2d3748] border border-gray-600 rounded-lg pl-10 pr-12 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        {showPassword ? (
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                        ) : (
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        )}
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <label className="flex items-center">
-                    <input type="checkbox" className="w-4 h-4 text-blue-500 bg-[#2d3748] border-gray-600 rounded focus:ring-blue-500" />
-                    <span className="ml-2 text-sm">Remember me</span>
-                  </label>
-                  <a href="#" className="text-blue-500 hover:text-blue-400 text-sm">Forgot password?</a>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full bg-blue-500 hover:bg-blue-600 disabled:bg-blue-600/50 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors"
-                >
-                  {isLoading ? 'Signing In...' : 'Sign In'}
-                </button>
-              </form>
+              <LoginForm
+                onSubmit={handleSignIn}
+                isLoading={isLoading}
+                error={error}
+                onInputChange={handleInputChange}
+                formData={{
+                  username: formData.username,
+                  password: formData.password,
+                }}
+              />
             )}
 
             {/* Sign Up Form */}
             {!isSignIn && (
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Full Name</label>
-                  <div className="relative">
-                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <input
-                      type="text"
-                      placeholder="Enter your full name"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      className="w-full bg-[#2d3748] border border-gray-600 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Email</label>
-                  <div className="relative">
-                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    <input
-                      type="email"
-                      placeholder="Enter your email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="w-full bg-[#2d3748] border border-gray-600 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Password</label>
-                  <div className="relative">
-                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Create a password"
-                      value={formData.password}
-                      onChange={(e) => handleInputChange('password', e.target.value)}
-                      className="w-full bg-[#2d3748] border border-gray-600 rounded-lg pl-10 pr-12 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        {showPassword ? (
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                        ) : (
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        )}
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">Confirm Password</label>
-                  <div className="relative">
-                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Confirm your password"
-                      value={formData.confirmPassword}
-                      onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                      className="w-full bg-[#2d3748] border border-gray-600 rounded-lg pl-10 pr-12 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        {showConfirmPassword ? (
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
-                        ) : (
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        )}
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <input type="checkbox" className="w-4 h-4 text-green-500 bg-[#2d3748] border-gray-600 rounded focus:ring-green-500 mt-1" />
-                  <span className="ml-2 text-sm">
-                    I agree to the{' '}
-                    <a href="#" className="text-green-500 hover:text-green-400">Terms of Service</a>
-                    {' '}and{' '}
-                    <a href="#" className="text-green-500 hover:text-green-400">Privacy Policy</a>
-                  </span>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full bg-green-500 hover:bg-green-600 disabled:bg-green-600/50 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors"
-                >
-                  {isLoading ? 'Creating Account...' : 'Create Account'}
-                </button>
-              </form>
+              <RegisterForm
+                onSubmit={handleSignUp}
+                isLoading={isLoading}
+                error={error}
+                onInputChange={handleInputChange}
+                formData={formData}
+              />
             )}
 
             {/* Divider */}

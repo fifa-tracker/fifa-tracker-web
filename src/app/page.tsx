@@ -15,10 +15,12 @@ export default function Home() {
   const { user, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState('tournament');
   const [selectedTournament, setSelectedTournament] = useState<string>('');
+  const [tournament, setTournament] = useState<Tournament | null>(null);
   const [table, setTable] = useState<PlayerStats[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [matches, setMatches] = useState<MatchResult[]>([]);
+  console.log(user);
 
   useEffect(() => {
     const fetchTournaments = async () => {
@@ -27,6 +29,7 @@ export default function Home() {
         setTournaments(tournaments);
         if (tournaments.length > 0) {
           setSelectedTournament(tournaments[0].id);
+          setTournament(tournaments[0]);
         }
       } catch (error) {
         console.error('Error fetching tournaments:', error);
@@ -168,9 +171,13 @@ export default function Home() {
                   />
                 </div>
               </div>
-              <p className="text-xs sm:text-sm text-gray-400">2023-06-01 - 2023-08-31</p>
+              <p className="text-xs sm:text-sm text-gray-400">{tournament?.start_date} - {tournament?.end_date}</p>
             </div>
-            <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs sm:text-sm self-start sm:self-auto">Completed</span>
+            <span className={`text-white px-3 py-1 rounded-full text-xs sm:text-sm self-start sm:self-auto ${
+              tournament?.completed ? 'bg-green-500' : 'bg-yellow-500'
+            }`}>
+              {tournament?.completed ? 'Completed' : 'In Progress'}
+            </span>
           </div>
         </div>
       </div>
@@ -215,6 +222,7 @@ export default function Home() {
             players={players} 
             tournaments={tournaments}
             selectedTournamentId={selectedTournament}
+            onMatchLogged={() => handleTabClick('history')}
           />
         )}
 

@@ -41,7 +41,7 @@ export default function Settings({ currentPlayers }: SettingsProps) {
   }, []);
 
   const filteredPlayers = allPlayers.filter(player =>
-    player.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    player.name && player.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
     !selectedPlayers.some(selected => selected.id === player.id)
   );
 
