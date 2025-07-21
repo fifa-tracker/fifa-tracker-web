@@ -4,18 +4,15 @@ import axios, { AxiosError } from 'axios';
 const getApiBaseUrl = () => {
   // Check if we're in a browser environment
   if (typeof window !== 'undefined') {
-    // If accessing from a different IP (like from phone), use the same IP for API
-    const currentHost = window.location.hostname;
-    const currentPort = window.location.port;
-    
-    // If we're not on localhost, use the same hostname for API
-    if (currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
-      return `http://${currentHost}:8000/api/v1`;
+    // Check if we're in development (localhost)
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:8000/api/v1';
     }
+    // Production - use relative URL or your production API URL
+    return '/api/v1';
   }
-  
-  // Default to localhost for local development
-  return process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+  // Server-side rendering - default to localhost
+  return 'http://localhost:8000/api/v1';
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -35,22 +32,16 @@ const getAccessToken = (): string | null => {
   return null;
 };
 
-// Helper function to validate token and refresh if needed
-const validateAndRefreshToken = async (): Promise<string | null> => {
-  const token = getAccessToken();
-  if (!token) {
-    return null;
-  }
-  
-  // You can add token expiration validation here if your tokens are JWTs
-  // For now, we'll just return the token and let the API handle 401 errors
-  return token;
-};
-
 // Helper function to create authenticated axios instance
 const createAuthenticatedRequest = () => {
   const token = getAccessToken();
-  const config: any = {
+  const config: {
+    baseURL: string;
+    headers?: {
+      'Authorization': string;
+      'Content-Type': string;
+    };
+  } = {
     baseURL: API_BASE_URL,
   };
   
@@ -459,7 +450,12 @@ export async function checkUsernameAvailability(username: string): Promise<boole
 export async function updateUserProfile(id: string, name?: string, email?: string, username?: string): Promise<User | null> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    const payload: any = { id, name, email, username };
+    const payload: {
+      id: string;
+      name?: string;
+      email?: string;
+      username?: string;
+    } = { id, name, email, username };
     if(id == ''){
       return null;
     }

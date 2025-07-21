@@ -5,7 +5,6 @@ import { useState } from 'react';
 interface LoginFormProps {
   onSubmit: (e: React.FormEvent) => Promise<void>;
   isLoading: boolean;
-  error: string;
   onInputChange: (field: string, value: string) => void;
   formData: {
     username: string;
@@ -13,7 +12,7 @@ interface LoginFormProps {
   };
 }
 
-export default function LoginForm({ onSubmit, isLoading, error, onInputChange, formData }: LoginFormProps) {
+export default function LoginForm({ onSubmit, isLoading, onInputChange, formData }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {

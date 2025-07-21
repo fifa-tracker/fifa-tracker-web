@@ -1,19 +1,6 @@
 import { TrophyIcon } from '@/components/Icons';
 import { PlayerStats } from '@/lib/api';
 
-interface Player {
-  pos: number;
-  player: string;
-  p: number;
-  w: number;
-  d: number;
-  l: number;
-  gf: number;
-  ga: number;
-  gd: number;
-  pts: number;
-}
-
 interface TournamentStandingsProps {
   standings: PlayerStats[];
 }

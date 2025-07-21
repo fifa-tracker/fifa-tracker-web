@@ -10,7 +10,7 @@ import Settings from '@/components/Settings';
 import CustomDropdown from '@/components/CustomDropdown';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/lib/auth';
-import { getTournaments, getTable, PlayerStats, Player, getPlayers, Tournament, getMatchHistory, MatchResult, getTournamentStandings, getTournamentMatches, getTournamentPlayers } from '@/lib/api';
+import { getTournaments, PlayerStats, Player, Tournament, MatchResult, getTournamentStandings, getTournamentMatches, getTournamentPlayers } from '@/lib/api';
 
 export default function Home() {
   const { user, signOut } = useAuth();
@@ -276,7 +276,7 @@ export default function Home() {
         )}
 
         {activeTab === 'settings' && (
-          <Settings currentPlayers={['Alex', 'Jordan', 'Sam', 'Casey', 'Riley']} />
+          <Settings />
         )}
       </div>
     </div>

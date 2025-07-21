@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { checkUsernameAvailability } from '../lib/api';
 
 interface RegisterFormProps {
   onSubmit: (e: React.FormEvent) => Promise<void>;
   isLoading: boolean;
-  error: string;
   onInputChange: (field: string, value: string) => void;
   formData: {
     name: string;
@@ -17,40 +16,41 @@ interface RegisterFormProps {
   };
 }
 
-export default function RegisterForm({ onSubmit, isLoading, error, onInputChange, formData }: RegisterFormProps) {
+export default function RegisterForm({ onSubmit, isLoading, onInputChange, formData }: RegisterFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [usernameError, setUsernameError] = useState('');
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Debounced username availability check
   const debouncedUsernameCheck = useCallback(
-    (() => {
-      let timeoutId: NodeJS.Timeout;
-      return (username: string) => {
-        clearTimeout(timeoutId);
-        
-        if (!username || username.length < 3) {
-          setUsernameStatus('idle');
-          setUsernameError('');
-          return;
-        }
-
-        setUsernameStatus('checking');
+    (username: string) => {
+      // Clear any existing timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      
+      if (!username || username.length < 3) {
+        setUsernameStatus('idle');
         setUsernameError('');
+        return;
+      }
 
-        timeoutId = setTimeout(async () => {
-          try {
-            const isAvailable = await checkUsernameAvailability(username);
-            setUsernameStatus(isAvailable ? 'available' : 'taken');
-            setUsernameError(isAvailable ? '' : 'This username is already taken');
-          } catch (error) {
-            setUsernameStatus('taken');
-            setUsernameError('Unable to check username availability');
-          }
-        }, 500); // 500ms delay
-      };
-    })(),
+      setUsernameStatus('checking');
+      setUsernameError('');
+
+      timeoutRef.current = setTimeout(async () => {
+        try {
+          const isAvailable = await checkUsernameAvailability(username);
+          setUsernameStatus(isAvailable ? 'available' : 'taken');
+          setUsernameError(isAvailable ? '' : 'This username is already taken');
+        } catch {
+          setUsernameStatus('taken');
+          setUsernameError('Unable to check username availability');
+        }
+      }, 500); // 500ms delay
+    },
     []
   );
 

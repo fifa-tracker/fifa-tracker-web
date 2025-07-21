@@ -1,11 +1,7 @@
 import { createTournament, getPlayers, Player } from "@/lib/api";
 import { useState, useEffect, useRef } from "react";
 
-interface SettingsProps {
-  currentPlayers: string[];
-}
-
-export default function Settings({ currentPlayers }: SettingsProps) {
+export default function Settings() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [player_ids, setPlayer_ids] = useState<string[]>([]);

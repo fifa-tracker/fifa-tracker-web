@@ -64,7 +64,7 @@ export default function AuthPage() {
       } else {
         setError('Invalid username or password');
       }
-    } catch (error) {
+    } catch {
       setError('An error occurred during sign in');
     } finally {
       setIsLoading(false);
@@ -89,7 +89,7 @@ export default function AuthPage() {
       } else {
         setError('Failed to create account');
       }
-    } catch (error) {
+    } catch {
       setError('An error occurred during sign up');
     } finally {
       setIsLoading(false);
@@ -153,7 +153,6 @@ export default function AuthPage() {
               <LoginForm
                 onSubmit={handleSignIn}
                 isLoading={isLoading}
-                error={error}
                 onInputChange={handleInputChange}
                 formData={{
                   username: formData.username,
@@ -167,7 +166,6 @@ export default function AuthPage() {
               <RegisterForm
                 onSubmit={handleSignUp}
                 isLoading={isLoading}
-                error={error}
                 onInputChange={handleInputChange}
                 formData={formData}
               />

@@ -63,8 +63,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const token = user.access_token || localStorage.getItem('fifa-tracker-token');
       
       // Store refresh token if provided
-      if ((user as any).refresh_token) {
-        localStorage.setItem('fifa-tracker-refresh-token', (user as any).refresh_token);
+      const userWithRefreshToken = user as User & { refresh_token?: string };
+      if (userWithRefreshToken.refresh_token) {
+        localStorage.setItem('fifa-tracker-refresh-token', userWithRefreshToken.refresh_token);
       }
       
       // Fetch complete user profile from backend

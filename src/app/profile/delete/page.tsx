@@ -2,13 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { TrophyIcon, UserIcon, ArrowLeftIcon, ExclamationTriangleIcon } from '@/components/Icons';
+import { TrophyIcon, ArrowLeftIcon, ExclamationTriangleIcon } from '@/components/Icons';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/lib/auth';
 import { deleteUserAccount } from '@/lib/api';
 
 export default function DeleteAccountPage() {
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
   const router = useRouter();
   const [confirmationText, setConfirmationText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +41,7 @@ export default function DeleteAccountPage() {
       } else {
         setError('Failed to delete account. Please try again.');
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred while deleting your account.');
     } finally {
       setIsLoading(false);

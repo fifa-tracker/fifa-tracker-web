@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { TrophyIcon, UserIcon, ArrowLeftIcon } from '@/components/Icons';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -10,6 +10,7 @@ import { updateUserProfile, checkUsernameAvailability } from '@/lib/api';
 export default function EditProfilePage() {
   const { user, updateUser } = useAuth();
   const router = useRouter();
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,39 +24,39 @@ export default function EditProfilePage() {
 
   // Debounced username availability check
   const debouncedUsernameCheck = useCallback(
-    (() => {
-      let timeoutId: NodeJS.Timeout;
-      return (username: string, currentUsername?: string) => {
-        clearTimeout(timeoutId);
-        
-        // Don't check if username is the same as current user's username
-        if (username === currentUsername) {
-          setUsernameStatus('idle');
-          setUsernameError('');
-          return;
-        }
-        
-        if (!username || username.length < 3) {
-          setUsernameStatus('idle');
-          setUsernameError('');
-          return;
-        }
-
-        setUsernameStatus('checking');
+    (username: string, currentUsername?: string) => {
+      // Clear any existing timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      
+      // Don't check if username is the same as current user's username
+      if (username === currentUsername) {
+        setUsernameStatus('idle');
         setUsernameError('');
+        return;
+      }
+      
+      if (!username || username.length < 3) {
+        setUsernameStatus('idle');
+        setUsernameError('');
+        return;
+      }
 
-        timeoutId = setTimeout(async () => {
-          try {
-            const isAvailable = await checkUsernameAvailability(username);
-            setUsernameStatus(isAvailable ? 'available' : 'taken');
-            setUsernameError(isAvailable ? '' : 'This username is already taken');
-          } catch (error) {
-            setUsernameStatus('taken');
-            setUsernameError('Unable to check username availability');
-          }
-        }, 500); // 500ms delay
-      };
-    })(),
+      setUsernameStatus('checking');
+      setUsernameError('');
+
+      timeoutRef.current = setTimeout(async () => {
+        try {
+          const isAvailable = await checkUsernameAvailability(username);
+          setUsernameStatus(isAvailable ? 'available' : 'taken');
+          setUsernameError(isAvailable ? '' : 'This username is already taken');
+        } catch {
+          setUsernameStatus('taken');
+          setUsernameError('Unable to check username availability');
+        }
+      }, 500); // 500ms delay
+    },
     []
   );
 
@@ -102,7 +103,7 @@ export default function EditProfilePage() {
       } else {
         setError('Failed to update profile. Please try again.');
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred while updating your profile.');
     } finally {
       setIsLoading(false);
