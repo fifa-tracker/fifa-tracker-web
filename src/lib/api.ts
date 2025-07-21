@@ -386,6 +386,19 @@ export async function getCurrentUser(): Promise<User | null> {
   }
 }
 
+export async function checkUsernameAvailability(username: string): Promise<boolean> {
+  try {
+    const axiosInstance = createAuthenticatedRequest();
+    const payload = {username: username};
+    const response = await axiosInstance.post(`/auth/check-username`, payload);
+    return !response.data.exists;
+  } catch (error) {
+    console.error('Error checking username availability:', error);
+    // If the API call fails, we'll assume the username is taken to be safe
+    return false;
+  }
+}
+
 export interface Player {
   name: string;
   id: string;

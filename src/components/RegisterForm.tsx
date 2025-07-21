@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { checkUsernameAvailability } from '../lib/api';
 
 interface RegisterFormProps {
   onSubmit: (e: React.FormEvent) => Promise<void>;
@@ -19,6 +20,44 @@ interface RegisterFormProps {
 export default function RegisterForm({ onSubmit, isLoading, error, onInputChange, formData }: RegisterFormProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  const [usernameError, setUsernameError] = useState('');
+
+  // Debounced username availability check
+  const debouncedUsernameCheck = useCallback(
+    (() => {
+      let timeoutId: NodeJS.Timeout;
+      return (username: string) => {
+        clearTimeout(timeoutId);
+        
+        if (!username || username.length < 3) {
+          setUsernameStatus('idle');
+          setUsernameError('');
+          return;
+        }
+
+        setUsernameStatus('checking');
+        setUsernameError('');
+
+        timeoutId = setTimeout(async () => {
+          try {
+            const isAvailable = await checkUsernameAvailability(username);
+            setUsernameStatus(isAvailable ? 'available' : 'taken');
+            setUsernameError(isAvailable ? '' : 'This username is already taken');
+          } catch (error) {
+            setUsernameStatus('taken');
+            setUsernameError('Unable to check username availability');
+          }
+        }, 500); // 500ms delay
+      };
+    })(),
+    []
+  );
+
+  // Check username availability when username changes
+  useEffect(() => {
+    debouncedUsernameCheck(formData.username);
+  }, [formData.username, debouncedUsernameCheck]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,11 +99,43 @@ export default function RegisterForm({ onSubmit, isLoading, error, onInputChange
             placeholder="Choose a username"
             value={formData.username}
             onChange={(e) => onInputChange('username', e.target.value)}
-            className="w-full bg-[#2d3748] border border-gray-600 rounded-lg pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+            className={`w-full bg-[#2d3748] border rounded-lg pl-10 pr-12 py-3 text-white placeholder-gray-400 focus:outline-none transition-colors ${
+              usernameStatus === 'available' 
+                ? 'border-green-500 focus:border-green-500' 
+                : usernameStatus === 'taken' 
+                ? 'border-red-500 focus:border-red-500' 
+                : 'border-gray-600 focus:border-blue-500'
+            }`}
             required
           />
+          {/* Username status indicator */}
+          {usernameStatus === 'checking' && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+            </div>
+          )}
+          {usernameStatus === 'available' && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          )}
+          {usernameStatus === 'taken' && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
+          )}
         </div>
         <p className="text-xs text-gray-400 mt-1">You can use your username or email to sign in later</p>
+        {usernameError && (
+          <p className="text-xs text-red-500 mt-1">{usernameError}</p>
+        )}
+        {usernameStatus === 'available' && (
+          <p className="text-xs text-green-500 mt-1">Username is available!</p>
+        )}
       </div>
 
       <div>
@@ -156,7 +227,7 @@ export default function RegisterForm({ onSubmit, isLoading, error, onInputChange
 
       <button
         type="submit"
-        disabled={isLoading}
+        disabled={isLoading || usernameStatus === 'taken' || (formData.username.length > 0 && usernameStatus === 'checking')}
         className="w-full bg-green-500 hover:bg-green-600 disabled:bg-green-600/50 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-colors"
       >
         {isLoading ? 'Creating Account...' : 'Create Account'}

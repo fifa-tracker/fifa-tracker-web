@@ -1,0 +1,65 @@
+# Cursor Rules for FIFA Tracker Web Frontend
+
+## API Documentation Reference
+- **Always check the backend API documentation** at: http://localhost:8000/docs#/
+- The backend is a FastAPI application with automatic OpenAPI/Swagger documentation
+- Verify endpoint paths, request/response schemas, and authentication requirements before implementing API calls
+
+## Project Structure
+- Frontend: Next.js 14 with TypeScript and Tailwind CSS
+- Backend: FastAPI running on http://localhost:8000
+- Authentication: JWT-based with access and refresh tokens
+- API Base URL: http://localhost:8000/api/v1
+
+## Key Guidelines
+
+### API Integration
+- All API calls should be made through `src/lib/api.ts`
+- Use the `createAuthenticatedRequest()` helper for authenticated endpoints
+- Handle 401 errors with automatic token refresh
+- Store tokens in localStorage with keys: 'fifa-tracker-token', 'fifa-tracker-refresh-token'
+
+### Authentication Flow
+- Login endpoint: `/auth/login-json` (POST)
+- Register endpoint: `/auth/register` (POST)
+- Token refresh: `/auth/refresh` (POST)
+- Current user: `/auth/me` (GET)
+
+### Core Features
+- **Players**: CRUD operations for managing players
+- **Matches**: Record, update, delete match results
+- **Tournaments**: Create, manage, and track tournament standings
+- **Statistics**: Player stats, head-to-head records, win rates
+
+### Error Handling
+- Always implement proper error handling for API calls
+- Log errors to console for debugging
+- Provide user-friendly error messages
+- Handle network connectivity issues gracefully
+
+### TypeScript
+- Use the interfaces defined in `src/lib/api.ts` for type safety
+- Ensure API response types match the backend schema
+- Update interfaces when backend API changes
+
+### Development Workflow
+1. Check API documentation at http://localhost:8000/docs#/
+2. Verify endpoint exists and understand request/response format
+3. Update TypeScript interfaces if needed
+4. Implement API call in `src/lib/api.ts`
+5. Use the function in components with proper error handling
+
+### Testing
+- Ensure backend server is running on localhost:8000
+- Test API endpoints through the Swagger UI
+- Verify authentication flow works correctly
+- Check that error handling works for various scenarios
+
+## Common Endpoints
+- `/players` - Player management
+- `/matches` - Match recording and history
+- `/tournaments` - Tournament management
+- `/stats` - Player statistics
+- `/head-to-head/{player1_id}/{player2_id}` - Head-to-head records
+
+Remember: Always refer to the live API documentation for the most up-to-date endpoint information and schemas. 
