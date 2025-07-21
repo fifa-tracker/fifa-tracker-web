@@ -43,30 +43,6 @@ export default function Home() {
   }, [isMenuOpen]);
 
   useEffect(() => {
-    const fetchTournaments = async () => {
-      try {
-        const tournaments = await getTournaments();
-        setTournaments(tournaments);
-        if (tournaments.length > 0) {
-          setSelectedTournament(tournaments[0].id);
-          setTournament(tournaments[0]);
-        }
-      } catch (error) {
-        console.error('Error fetching tournaments:', error);
-      }
-    };
-
-
-
-    const fetchPlayers = async () => {
-      try {
-        const players = await getTournamentPlayers(selectedTournament);
-        setPlayers(players);
-      } catch (error) {
-        console.error('Error fetching players:', error);
-      }
-    };
-
     const fetchTournamentStandings = async (tournamentId: string) => {
       try {
         const standings = await getTournamentStandings(tournamentId);
@@ -78,13 +54,21 @@ export default function Home() {
     };
 
     const initializeData = async () => {
-      await fetchPlayers();
-      
       const tournaments = await getTournaments();
       setTournaments(tournaments);
       if (tournaments.length > 0) {
         const firstTournamentId = tournaments[0].id;
         setSelectedTournament(firstTournamentId);
+        setTournament(tournaments[0]);
+        
+        // Now fetch players and standings for the selected tournament
+        try {
+          const players = await getTournamentPlayers(firstTournamentId);
+          setPlayers(players);
+        } catch (error) {
+          console.error('Error fetching tournament players:', error);
+        }
+        
         await fetchTournamentStandings(firstTournamentId);
       }
     };
@@ -95,18 +79,26 @@ export default function Home() {
   // Separate useEffect for when selectedTournament changes
   useEffect(() => {
     if (selectedTournament) {
-      const fetchTournamentStandings = async () => {
+      const fetchTournamentData = async () => {
         try {
+          // Fetch players for the selected tournament
+          const players = await getTournamentPlayers(selectedTournament);
+          setPlayers(players);
+        } catch (error) {
+          console.error('Error fetching tournament players:', error);
+        }
+
+        try {
+          // Fetch standings for the selected tournament
           const standings = await getTournamentStandings(selectedTournament);
           console.log('Tournament standings:', standings);
           setTable(standings);
         } catch (error) {
           console.error('Error fetching tournament standings:', error);
         }
-      };
 
-      const fetchMatchHistory = async () => {
         try {
+          // Fetch match history for the selected tournament
           const matches = await getTournamentMatches(selectedTournament);
           setMatches(matches);
         } catch (error) {
@@ -114,8 +106,7 @@ export default function Home() {
         }
       };
 
-      fetchTournamentStandings();
-      fetchMatchHistory();
+      fetchTournamentData();
     }
   }, [selectedTournament]);
 

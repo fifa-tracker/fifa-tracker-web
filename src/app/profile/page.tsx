@@ -5,11 +5,14 @@ import { useRouter } from 'next/navigation';
 import { TrophyIcon, UserIcon, ArrowLeftIcon } from '@/components/Icons';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/lib/auth';
+import { getCurrentUserStats, UserDetailedStats } from '@/lib/api';
 
 export default function ProfilePage() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [userStats, setUserStats] = useState<UserDetailedStats | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -27,6 +30,30 @@ export default function ProfilePage() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isMenuOpen]);
+
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      // Don't fetch stats if auth is still loading or user is not available
+      if (authLoading || !user?.id) {
+        return;
+      }
+
+      try {
+        setLoading(true);
+        console.log('User:', user);
+        console.log('Fetching user stats for user:', user.id);
+        const stats = await getCurrentUserStats(user.id);
+        console.log('Fetched user stats:', stats);
+        setUserStats(stats);
+      } catch (error) {
+        console.error('Error fetching user stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserStats();
+  }, [user, authLoading]);
 
   return (
     <ProtectedRoute>
@@ -90,6 +117,9 @@ export default function ProfilePage() {
               <div>
                 <h2 className="text-2xl font-bold">{user?.name}</h2>
                 <p className="text-gray-400">{user?.email}</p>
+                {userStats?.username && (
+                  <p className="text-gray-500 text-sm">@{userStats.username}</p>
+                )}
               </div>
             </div>
 
@@ -104,6 +134,10 @@ export default function ProfilePage() {
                     <p className="text-white">{user?.name}</p>
                   </div>
                   <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">Username</label>
+                    <p className="text-white">@{userStats?.username || 'N/A'}</p>
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium text-gray-400 mb-1">Email</label>
                     <p className="text-white">{user?.email}</p>
                   </div>
@@ -113,20 +147,129 @@ export default function ProfilePage() {
               {/* Statistics */}
               <div className="border-b border-gray-700 pb-6">
                 <h3 className="text-lg font-semibold mb-4">Your Statistics</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-yellow-400">0</div>
-                    <div className="text-sm text-gray-400">Matches Played</div>
+                {authLoading || loading ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                    <p className="text-gray-400 mt-2">
+                      {authLoading ? 'Loading user data...' : 'Loading statistics...'}
+                    </p>
                   </div>
-                  <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-green-400">0</div>
-                    <div className="text-sm text-gray-400">Wins</div>
+                ) : userStats ? (
+                  <div className="space-y-6">
+                    {/* Main Stats Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-[#2d3748] rounded-lg p-4 text-center">
+                        <div className="text-2xl font-bold text-yellow-400">{userStats.total_matches || 0}</div>
+                        <div className="text-sm text-gray-400">Matches Played</div>
+                      </div>
+                      <div className="bg-[#2d3748] rounded-lg p-4 text-center">
+                        <div className="text-2xl font-bold text-green-400">{userStats.wins || 0}</div>
+                        <div className="text-sm text-gray-400">Wins</div>
+                      </div>
+                      <div className="bg-[#2d3748] rounded-lg p-4 text-center">
+                        <div className="text-2xl font-bold text-blue-400">
+                          {userStats.win_rate !== null && userStats.win_rate !== undefined 
+                            ? (userStats.win_rate * 100).toFixed(1)
+                            : userStats.total_matches > 0 
+                              ? ((userStats.wins || 0) / (userStats.total_matches || 1) * 100).toFixed(1)
+                              : '0.0'
+                          }%
+                        </div>
+                        <div className="text-sm text-gray-400">Win Rate</div>
+                      </div>
+                    </div>
+
+                    {/* Additional Stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="bg-[#2d3748] rounded-lg p-4 text-center">
+                        <div className="text-xl font-bold text-red-400">{userStats.losses || 0}</div>
+                        <div className="text-sm text-gray-400">Losses</div>
+                      </div>
+                      <div className="bg-[#2d3748] rounded-lg p-4 text-center">
+                        <div className="text-xl font-bold text-gray-400">{userStats.draws || 0}</div>
+                        <div className="text-sm text-gray-400">Draws</div>
+                      </div>
+                      <div className="bg-[#2d3748] rounded-lg p-4 text-center">
+                        <div className="text-xl font-bold text-purple-400">{userStats.points || 0}</div>
+                        <div className="text-sm text-gray-400">Points</div>
+                      </div>
+                      <div className="bg-[#2d3748] rounded-lg p-4 text-center">
+                        <div className="text-xl font-bold text-orange-400">{userStats.elo_rating || 1200}</div>
+                        <div className="text-sm text-gray-400">Elo Rating</div>
+                      </div>
+                    </div>
+
+                    {/* Goals Stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-[#2d3748] rounded-lg p-4 text-center">
+                        <div className="text-xl font-bold text-green-400">{userStats.total_goals_scored || 0}</div>
+                        <div className="text-sm text-gray-400">Goals Scored</div>
+                      </div>
+                      <div className="bg-[#2d3748] rounded-lg p-4 text-center">
+                        <div className="text-xl font-bold text-red-400">{userStats.total_goals_conceded || 0}</div>
+                        <div className="text-sm text-gray-400">Goals Conceded</div>
+                      </div>
+                      <div className="bg-[#2d3748] rounded-lg p-4 text-center">
+                        <div className="text-xl font-bold text-blue-400">{(userStats.total_goals_scored || 0) - (userStats.total_goals_conceded || 0)}</div>
+                        <div className="text-sm text-gray-400">Goal Difference</div>
+                      </div>
+                    </div>
+
+                    {/* Averages */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="bg-[#2d3748] rounded-lg p-4 text-center">
+                        <div className="text-xl font-bold text-green-400">{(userStats.average_goals_scored || 0).toFixed(1)}</div>
+                        <div className="text-sm text-gray-400">Avg Goals Scored</div>
+                      </div>
+                      <div className="bg-[#2d3748] rounded-lg p-4 text-center">
+                        <div className="text-xl font-bold text-red-400">{(userStats.average_goals_conceded || 0).toFixed(1)}</div>
+                        <div className="text-sm text-gray-400">Avg Goals Conceded</div>
+                      </div>
+                    </div>
+
+                    {/* Tournament Stats */}
+                    <div className="bg-[#2d3748] rounded-lg p-4 text-center">
+                      <div className="text-xl font-bold text-yellow-400">{userStats.tournaments_played || 0}</div>
+                      <div className="text-sm text-gray-400">Tournaments Played</div>
+                    </div>
+
+                    {/* Head-to-Head Records */}
+                    {((userStats.highest_wins_against && Object.keys(userStats.highest_wins_against).length > 0) || 
+                      (userStats.highest_losses_against && Object.keys(userStats.highest_losses_against).length > 0)) && (
+                      <div className="space-y-4">
+                        <h4 className="text-md font-semibold">Head-to-Head Records</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {userStats.highest_wins_against && Object.keys(userStats.highest_wins_against).length > 0 && (
+                            <div className="bg-[#2d3748] rounded-lg p-4">
+                              <div className="text-sm font-medium text-green-400 mb-2">Most Wins Against</div>
+                              {Object.entries(userStats.highest_wins_against).map(([player, wins]) => (
+                                <div key={player} className="flex justify-between text-sm">
+                                  <span className="text-gray-300">{player}</span>
+                                  <span className="text-green-400 font-medium">{wins || 0} wins</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {userStats.highest_losses_against && Object.keys(userStats.highest_losses_against).length > 0 && (
+                            <div className="bg-[#2d3748] rounded-lg p-4">
+                              <div className="text-sm font-medium text-red-400 mb-2">Most Losses Against</div>
+                              {Object.entries(userStats.highest_losses_against).map(([player, losses]) => (
+                                <div key={player} className="flex justify-between text-sm">
+                                  <span className="text-gray-300">{player}</span>
+                                  <span className="text-red-400 font-medium">{losses || 0} losses</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-blue-400">0%</div>
-                    <div className="text-sm text-gray-400">Win Rate</div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400">Failed to load statistics</p>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Actions */}

@@ -1,6 +1,31 @@
 import axios, { AxiosError } from 'axios';
 
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:8000/api/v1';
+// Dynamic API base URL that works for both local and network access
+const getApiBaseUrl = () => {
+  // Check if we're in a browser environment
+  if (typeof window !== 'undefined') {
+    // If accessing from a different IP (like from phone), use the same IP for API
+    const currentHost = window.location.hostname;
+    const currentPort = window.location.port;
+    
+    // If we're not on localhost, use the same hostname for API
+    if (currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+      return `http://${currentHost}:8000/api/v1`;
+    }
+  }
+  
+  // Default to localhost for local development
+  return process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+// Debug logging to help troubleshoot API URL issues
+if (typeof window !== 'undefined') {
+  console.log('API Base URL:', API_BASE_URL);
+  console.log('Current location:', window.location.href);
+  console.log('Current hostname:', window.location.hostname);
+}
 
 // Helper function to get access token from localStorage
 const getAccessToken = (): string | null => {
@@ -279,6 +304,12 @@ export async function removePlayerFromTournament(tournament_id: string, player_i
 
 export async function getTournamentPlayers(tournament_id: string): Promise<Player[]> {
   try {
+    // Guard against empty tournament ID
+    if (!tournament_id || tournament_id.trim() === '') {
+      console.warn('Attempted to fetch tournament players with empty tournament ID');
+      return [];
+    }
+
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.get(`/tournaments/${tournament_id}/players`);
     return response.data;
@@ -290,6 +321,12 @@ export async function getTournamentPlayers(tournament_id: string): Promise<Playe
 
 export async function getTournamentMatches(tournament_id: string): Promise<MatchResult[]> {
   try {
+    // Guard against empty tournament ID
+    if (!tournament_id || tournament_id.trim() === '') {
+      console.warn('Attempted to fetch tournament matches with empty tournament ID');
+      return [];
+    }
+
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.get(`/tournaments/${tournament_id}/matches`);
     return response.data;
@@ -300,8 +337,13 @@ export async function getTournamentMatches(tournament_id: string): Promise<Match
 }
 
 export async function getTournamentStandings(tournament_id: string): Promise<PlayerStats[]> {
-
   try {
+    // Guard against empty tournament ID
+    if (!tournament_id || tournament_id.trim() === '') {
+      console.warn('Attempted to fetch tournament standings with empty tournament ID');
+      return [];
+    }
+
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.get(`/tournaments/${tournament_id}/stats`);
     return response.data;
@@ -330,6 +372,9 @@ export async function login(identifier: string, password: string): Promise<User 
     // The API expects username field, so we'll use the identifier as username
     const payload = { username: identifier, password };
     
+    console.log('Attempting login to:', `${API_BASE_URL}/auth/login-json`);
+    console.log('Login payload:', { username: identifier, password: '***' });
+    
     const response = await axios.post(`${API_BASE_URL}/auth/login-json`, payload);
     
     // Store the access token if it's included in the response
@@ -345,6 +390,18 @@ export async function login(identifier: string, password: string): Promise<User 
     return response.data;
   } catch (error) {
     console.error('Error logging in:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('Login error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          headers: error.config?.headers
+        }
+      });
+    }
     return null;
   }
 }
@@ -427,6 +484,36 @@ export async function deleteUserAccount(confirmationText: string): Promise<boole
   }
 }
 
+export async function getCurrentUserStats(player_id: string): Promise<UserDetailedStats | null> {
+  try {
+    const axiosInstance = createAuthenticatedRequest();
+    if(player_id == ''){
+      console.log('Player ID is empty');
+      return null;
+    }
+    const response = await axiosInstance.get(`/players/${player_id}/stats/`);
+    
+    console.log('User stats from API:', response.data);
+    
+    // The API returns a single UserDetailedStats object, not an array
+    return response.data || null;
+  } catch (error) {
+    console.error('Error fetching current user stats:', error);
+    return null;
+  }
+}
+
+export async function getAllUsersStats(): Promise<UserDetailedStats[]> {
+  try {
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.get('/stats/');
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching all users stats:', error);
+    return [];
+  }
+}
+
 export interface Player {
   name: string;
   id: string;
@@ -506,5 +593,35 @@ export interface DetailedPlayerStats {
     date: string;
     winrate: number;
   }[];
+}
+
+export interface UserDetailedStats {
+  id: string;
+  username: string;
+  email: string;
+  name: string | null;
+  total_matches: number;
+  total_goals_scored: number;
+  total_goals_conceded: number;
+  wins: number;
+  losses: number;
+  draws: number;
+  points: number;
+  win_rate: number;
+  average_goals_scored: number;
+  average_goals_conceded: number;
+  highest_wins_against: {
+    [playerName: string]: number;
+  } | null;
+  highest_losses_against: {
+    [playerName: string]: number;
+  } | null;
+  winrate_over_time: {
+    date: string;
+    winrate: number;
+  }[];
+  elo_rating: number;
+  tournaments_played: number;
+  tournament_ids: string[];
 }
 
