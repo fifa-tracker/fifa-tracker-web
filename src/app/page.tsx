@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrophyIcon, CalendarIcon, PlusIcon, SettingsIcon } from '@/components/Icons';
+import { useRouter } from 'next/navigation';
+import { TrophyIcon, CalendarIcon, PlusIcon, SettingsIcon, UserIcon, Bars3Icon } from '@/components/Icons';
 import TournamentStandings from '@/components/TournamentStandings';
 import MatchHistory from '@/components/MatchHistory';
 import LogMatch from '@/components/LogMatch';
@@ -9,10 +10,11 @@ import Settings from '@/components/Settings';
 import CustomDropdown from '@/components/CustomDropdown';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/lib/auth';
-import { getTournaments, getTable, PlayerStats, Player, getPlayers, Tournament, getMatchHistory, MatchResult, getTournamentStandings, getTournamentMatches } from '@/lib/api';
+import { getTournaments, getTable, PlayerStats, Player, getPlayers, Tournament, getMatchHistory, MatchResult, getTournamentStandings, getTournamentMatches, getTournamentPlayers } from '@/lib/api';
 
 export default function Home() {
   const { user, signOut } = useAuth();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('tournament');
   const [selectedTournament, setSelectedTournament] = useState<string>('');
   const [tournament, setTournament] = useState<Tournament | null>(null);
@@ -20,7 +22,25 @@ export default function Home() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [matches, setMatches] = useState<MatchResult[]>([]);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   console.log(user);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.profile-menu')) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
 
   useEffect(() => {
     const fetchTournaments = async () => {
@@ -40,7 +60,7 @@ export default function Home() {
 
     const fetchPlayers = async () => {
       try {
-        const players = await getPlayers();
+        const players = await getTournamentPlayers(selectedTournament);
         setPlayers(players);
       } catch (error) {
         console.error('Error fetching players:', error);
@@ -133,27 +153,65 @@ export default function Home() {
     <ProtectedRoute>
       <div className="min-h-screen bg-[#0f1419] text-white">
         {/* Header */}
-        <header className="text-center py-4 sm:py-8 px-4">
-          <div className="flex items-center justify-center gap-2 sm:gap-3 mb-2">
-            <TrophyIcon className="text-yellow-400 w-6 h-6 sm:w-8 sm:h-8" />
-            <h1 className="text-2xl sm:text-3xl font-bold">FIFA Tracker</h1>
-          </div>
-          <p className="text-gray-300 text-sm sm:text-base px-2">Track your FIFA matches and tournaments with friends.</p>
-          
-          {/* User Info and Sign Out */}
-          <div className="flex items-center justify-center gap-4 mt-4">
-            <span className="text-gray-400 text-sm">Welcome, {user?.name}</span>
-            <button
-              onClick={signOut}
-              className="text-red-400 hover:text-red-300 text-sm underline"
-            >
-              Sign Out
-            </button>
+        <header className="py-4 sm:py-6 px-4 border-b border-gray-700">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            {/* Logo and Title - Left Side */}
+            <div className="flex items-center gap-2 sm:gap-3">
+              <TrophyIcon className="text-yellow-400 w-6 h-6 sm:w-8 sm:h-8" />
+              <h1 className="text-xl sm:text-2xl font-bold">FIFA Tracker</h1>
+            </div>
+
+            {/* Profile and Menu - Right Side */}
+            <div className="flex items-center gap-3">
+              {/* Profile Icon */}
+              <div className="flex items-center gap-2 p-2 rounded-lg">
+                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                  <UserIcon className="w-4 h-4 text-white" />
+                </div>
+                <span className="hidden sm:block text-sm text-gray-300">{user?.name}</span>
+              </div>
+
+              {/* Burger Menu */}
+              <div className="relative profile-menu">
+                <button
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="p-2 rounded-lg hover:bg-[#1a1f2e] transition-colors"
+                >
+                  <Bars3Icon className="w-4 h-4 text-gray-400" />
+                </button>
+
+                {/* Dropdown Menu */}
+                {isMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-[#1a1f2e] rounded-lg shadow-lg border border-gray-700 z-50">
+                    <div className="py-1">
+                      <button
+                        onClick={() => {
+                          router.push('/profile');
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-[#2d3748] hover:text-white transition-colors"
+                      >
+                        View Profile
+                      </button>
+                      <button
+                        onClick={() => {
+                          signOut();
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-[#2d3748] hover:text-white transition-colors"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </header>
 
       {/* Tournament Info */}
-      <div className="max-w-6xl mx-auto px-4 mb-4 sm:mb-6">
+      <div className="max-w-6xl mx-auto px-4 my-4 sm:my-6">
         <div className="bg-[#1a1f2e] rounded-lg p-3 sm:p-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex-1">

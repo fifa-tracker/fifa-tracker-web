@@ -11,6 +11,7 @@ interface AuthContextType {
   signIn: (identifier: string, password: string) => Promise<boolean>;
   signUp: (name: string, email: string, password: string, username?: string) => Promise<boolean>;
   signOut: () => void;
+  updateUser: (userData: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -128,6 +129,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('fifa-tracker-refresh-token');
   };
 
+  const updateUser = (userData: User) => {
+    setUser(userData);
+    localStorage.setItem('fifa-tracker-user', JSON.stringify(userData));
+  };
+
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
@@ -136,6 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signIn,
     signUp,
     signOut,
+    updateUser,
   };
 
   return (

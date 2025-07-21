@@ -1,6 +1,7 @@
 import { Player, recordMatch, Tournament } from "@/lib/api";
 import { useState } from "react";
 import CustomDropdown from "./CustomDropdown";
+import { FIFA23AllTeams } from "@/constants/teams";
 
 interface LogMatchProps {
   players: Player[];
@@ -22,59 +23,7 @@ export default function LogMatch({ players, tournaments, selectedTournamentId, o
     tournament_id: selectedTournament?.id || "",
   });
 
-  const teams = [
-    "Arsenal",
-    "Aston Villa",
-    "Bournemouth",
-    "Brentford",
-    "Brighton",
-    "Burnley",
-    "Chelsea",
-    "Crystal Palace",
-    "Everton",
-    "Fulham",
-    "Liverpool",
-    "Luton",
-    "Manchester City",
-    "Manchester United",
-    "Newcastle",
-    "Nottingham Forest",
-    "Sheffield United",
-    "Tottenham",
-    "West Ham",
-    "Wolves",
-    "Real Madrid",
-    "Barcelona",
-    "Atletico Madrid",
-    "Sevilla",
-    "Valencia",
-    "Bayern Munich",
-    "Borussia Dortmund",
-    "RB Leipzig",
-    "Bayer Leverkusen",
-    "PSG",
-    "Marseille",
-    "Lyon",
-    "Monaco",
-    "Nice",
-    "Juventus",
-    "Inter",
-    "AC Milan",
-    "Napoli",
-    "Roma",
-    "Lazio",
-    "Ajax",
-    "PSV Eindhoven",
-    "Feyenoord",
-    "Porto",
-    "Benfica",
-    "Sporting CP",
-    "Celtic",
-    "Rangers",
-    "Galatasaray",
-    "Fenerbahce",
-    "Besiktas",
-  ];
+  const teams = FIFA23AllTeams.map(team => team.name);
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData((prev) => ({

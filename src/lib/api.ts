@@ -399,6 +399,34 @@ export async function checkUsernameAvailability(username: string): Promise<boole
   }
 }
 
+export async function updateUserProfile(id: string, name?: string, email?: string, username?: string): Promise<User | null> {
+  try {
+    const axiosInstance = createAuthenticatedRequest();
+    const payload: any = { id, name, email, username };
+    if(id == ''){
+      return null;
+    }
+    const response = await axiosInstance.put(`/players/${id}`, payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating user profile:', error);
+    return null;
+  }
+}
+
+export async function deleteUserAccount(confirmationText: string): Promise<boolean> {
+  try {
+    const axiosInstance = createAuthenticatedRequest();
+    await axiosInstance.delete('/auth/me', { 
+      data: { confirmation_text: confirmationText }
+    });
+    return true;
+  } catch (error) {
+    console.error('Error deleting user account:', error);
+    return false;
+  }
+}
+
 export interface Player {
   name: string;
   id: string;
