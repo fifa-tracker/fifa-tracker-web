@@ -16,8 +16,9 @@ const getApiBaseUrl = () => {
     
     // Production - ensure HTTPS for ngrok URLs to avoid mixed content issues
     if (API_BASE_URL_NGROK) {
-      // Force HTTPS for ngrok URLs
-      const ngrokUrl = API_BASE_URL_NGROK.replace('http://', 'https://');
+      // Force HTTPS for ngrok URLs and ensure no trailing slash
+      let ngrokUrl = API_BASE_URL_NGROK.replace('http://', 'https://');
+      ngrokUrl = ngrokUrl.replace(/\/$/, ''); // Remove trailing slash if present
       console.log('Using ngrok URL:', ngrokUrl);
       return `${ngrokUrl}/api/v1`;
     }
@@ -37,6 +38,12 @@ if (typeof window !== 'undefined') {
   console.log('API Base URL:', API_BASE_URL);
   console.log('Current location:', window.location.href);
   console.log('Current hostname:', window.location.hostname);
+  
+  // Validate that we're using HTTPS in production
+  if (window.location.protocol === 'https:' && API_BASE_URL.startsWith('http:')) {
+    console.error('SECURITY WARNING: Using HTTP API URL in HTTPS environment!');
+    console.error('This will cause mixed content errors.');
+  }
 }
 
 // Helper function to get access token from localStorage
@@ -50,6 +57,12 @@ const getAccessToken = (): string | null => {
 // Helper function to create authenticated axios instance
 const createAuthenticatedRequest = () => {
   const token = getAccessToken();
+  
+  // Get fresh API base URL to avoid caching issues
+  const freshApiBaseUrl = getApiBaseUrl();
+  
+  console.log('Creating authenticated request with base URL:', freshApiBaseUrl);
+  
   const config: {
     baseURL: string;
     headers?: {
@@ -57,7 +70,7 @@ const createAuthenticatedRequest = () => {
       'Content-Type': string;
     };
   } = {
-    baseURL: API_BASE_URL,
+    baseURL: freshApiBaseUrl,
   };
   
   if (token) {
@@ -68,6 +81,18 @@ const createAuthenticatedRequest = () => {
   }
   
   const axiosInstance = axios.create(config);
+  
+  // Add request interceptor to log the actual request URL
+  axiosInstance.interceptors.request.use(
+    (config) => {
+      const fullUrl = (config.baseURL || '') + (config.url || '');
+      console.log('Making request to:', fullUrl);
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    }
+  );
   
   // Add response interceptor to handle authentication errors
   axiosInstance.interceptors.response.use(
@@ -121,6 +146,11 @@ export async function getPlayers(): Promise<Player[]> {
 export async function recordMatch(player1_id: string, player2_id: string, team1: string, team2: string, player1_goals: number, player2_goals: number, tournament_id: string): Promise<Match | null> {
   try {
     const axiosInstance = createAuthenticatedRequest();
+    
+    // Log the full URL being used
+    const fullUrl = `${axiosInstance.defaults.baseURL}/matches`;
+    console.log('Making POST request to:', fullUrl);
+    
     const response = await axiosInstance.post('/matches', {
       player1_id,
       player2_id,
