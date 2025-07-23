@@ -1,9 +1,10 @@
 import axios, { AxiosError } from 'axios';
 
 // Environment variables for API base URLs
-const API_BASE_URL_NGROK = process.env.NEXT_PUBLIC_API_BASE_URL_NGROK || 'https://25078b6fce82.ngrok-free.app';
-const API_BASE_URL_LOCAL = process.env.NEXT_PUBLIC_API_BASE_URL_LOCAL || 'http://localhost:8000';
-
+const API_BASE_URL_NGROK = process.env.NEXT_PUBLIC_API_BASE_URL_NGROK;
+console.log('API_BASE_URL_NGROK:', API_BASE_URL_NGROK);
+const API_BASE_URL_LOCAL = process.env.NEXT_PUBLIC_API_BASE_URL_LOCAL;
+console.log('API_BASE_URL_LOCAL:', API_BASE_URL_LOCAL);
 // Dynamic API base URL that works for both local and network access
 const getApiBaseUrl = () => {
   // Check if we're in a browser environment
@@ -249,7 +250,7 @@ export async function getPlayerStats(player_id: string): Promise<DetailedPlayerS
 export async function getTournaments(): Promise<Tournament[]> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    const response = await axiosInstance.get('/tournaments');
+    const response = await axiosInstance.get('/tournaments/');
     console.log('Tournaments:', response.data);
     return response.data;
   } catch (error) {
@@ -262,7 +263,7 @@ export async function createTournament(name: string, description: string, player
 
   try {
     const axiosInstance = createAuthenticatedRequest();
-    const response = await axiosInstance.post('/tournaments', { name, description, player_ids });
+    const response = await axiosInstance.post('/tournaments/', { name, description, player_ids });
     return response.data;
   } catch (error) {
     console.error('Error creating tournament:', error);
