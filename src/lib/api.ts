@@ -1,18 +1,22 @@
 import axios, { AxiosError } from 'axios';
 
+// Environment variables for API base URLs
+const API_BASE_URL_NGROK = process.env.NEXT_PUBLIC_API_BASE_URL_NGROK || 'https://25078b6fce82.ngrok-free.app';
+const API_BASE_URL_LOCAL = process.env.NEXT_PUBLIC_API_BASE_URL_LOCAL || 'http://localhost:8000';
+
 // Dynamic API base URL that works for both local and network access
 const getApiBaseUrl = () => {
   // Check if we're in a browser environment
   if (typeof window !== 'undefined') {
     // Check if we're in development (localhost)
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      return 'http://localhost:8000/api/v1';
+      return `${API_BASE_URL_LOCAL}/api/v1`;
     }
-    // Production - use relative URL or your production API URL
-    return '/api/v1';
+    // Production - use ngrok URL or relative URL
+    return `${API_BASE_URL_NGROK}/api/v1`;
   }
   // Server-side rendering - default to localhost
-  return 'http://localhost:8000/api/v1';
+  return `${API_BASE_URL_LOCAL}/api/v1`;
 };
 
 const API_BASE_URL = getApiBaseUrl();

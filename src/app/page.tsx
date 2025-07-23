@@ -23,7 +23,6 @@ export default function Home() {
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [matches, setMatches] = useState<MatchResult[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  console.log(user);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

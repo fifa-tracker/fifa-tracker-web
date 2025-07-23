@@ -20,6 +20,17 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## API Configuration
+
+This project connects to a FastAPI backend. The following API base URLs are configured:
+
+- **Local Development**: `http://localhost:8000/`
+- **Ngrok Tunnel**: `https://[your-ngrok-subdomain].ngrok-free.app`
+
+The backend API documentation is available at:
+- Local: http://localhost:8000/docs#/
+- Ngrok: https://[your-ngrok-subdomain].ngrok-free.app/docs#/
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
