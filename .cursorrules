@@ -1,5 +1,10 @@
 # Cursor Rules for FIFA Tracker Web Frontend
 
+## File Inclusion Rules
+- **Do NOT ignore .env files** - Include them in context when relevant
+- Environment variables and configuration files are important for API integration
+- Consider .env files when working with authentication, API endpoints, and configuration
+
 ## API Documentation Reference
 - **Always check the backend API documentation** at: http://localhost:8000/docs#/
 - The backend is a FastAPI application with automatic OpenAPI/Swagger documentation

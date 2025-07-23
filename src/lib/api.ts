@@ -5,10 +5,22 @@ const API_BASE_URL_NGROK = process.env.NEXT_PUBLIC_API_BASE_URL_NGROK;
 console.log('API_BASE_URL_NGROK:', API_BASE_URL_NGROK);
 const API_BASE_URL_LOCAL = process.env.NEXT_PUBLIC_API_BASE_URL_LOCAL;
 console.log('API_BASE_URL_LOCAL:', API_BASE_URL_LOCAL);
+const ENVIRONMENT = process.env.NEXT_PUBLIC_ENVIRONMENT || process.env.NODE_ENV;
+console.log('ENVIRONMENT:', ENVIRONMENT);
+
 // Dynamic API base URL that works for both local and network access
 const getApiBaseUrl = () => {
   // Check if we're in a browser environment
   if (typeof window !== 'undefined') {
+    // Check environment variable first
+    if (ENVIRONMENT === 'production' && API_BASE_URL_NGROK) {
+      // Production environment - use ngrok URL
+      let ngrokUrl = API_BASE_URL_NGROK.replace('http://', 'https://');
+      ngrokUrl = ngrokUrl.replace(/\/$/, ''); // Remove trailing slash if present
+      console.log('Production environment detected, using ngrok URL:', ngrokUrl);
+      return `${ngrokUrl}/api/v1`;
+    }
+    
     // Check if we're in development (localhost)
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
       return `${API_BASE_URL_LOCAL}/api/v1`;
@@ -140,7 +152,7 @@ const createAuthenticatedRequest = () => {
 export async function getPlayers(): Promise<Player[]> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    const response = await axiosInstance.get('/players');
+    const response = await axiosInstance.get('/players/');
     return response.data.map((player: Player) => ({ name: player.name, id: player.id })); // Updated return statement
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -165,14 +177,14 @@ export async function recordMatch(player1_id: string, player2_id: string, team1:
     const axiosInstance = createAuthenticatedRequest();
     
     // Log the full URL being used
-    const fullUrl = `${axiosInstance.defaults.baseURL}/matches`;
+    const fullUrl = `${axiosInstance.defaults.baseURL}/matches/`;
     console.log('Making POST request to:', fullUrl);
     
     // Test the connection first
     if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
       console.log('Testing HTTPS connection to ngrok...');
       try {
-        const testResponse = await fetch(`${axiosInstance.defaults.baseURL}/players`, {
+        const testResponse = await fetch(`${axiosInstance.defaults.baseURL}/players/`, {
           method: 'GET',
           headers: {
             'Cache-Control': 'no-cache',
@@ -185,7 +197,7 @@ export async function recordMatch(player1_id: string, player2_id: string, team1:
       }
     }
     
-    const response = await axiosInstance.post('/matches', {
+    const response = await axiosInstance.post('/matches/', {
       player1_id,
       player2_id,
       team1,
@@ -223,9 +235,9 @@ export async function recordMatch(player1_id: string, player2_id: string, team1:
 
 export async function getTable(): Promise<PlayerStats[]> {
   try {
-    console.log('Attempting to fetch from:', `${API_BASE_URL}/stats`);
+    console.log('Attempting to fetch from:', `${API_BASE_URL}/stats/`);
     const axiosInstance = createAuthenticatedRequest();
-    const response = await axiosInstance.get('/stats');
+    const response = await axiosInstance.get('/stats/');
     console.log('Successfully fetched stats:', response.data);
     return response.data;
   } catch (error) {
@@ -250,7 +262,7 @@ export async function getTable(): Promise<PlayerStats[]> {
 export async function getMatchHistory(): Promise<MatchResult[]> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    const response = await axiosInstance.get('/matches');
+    const response = await axiosInstance.get('/matches/');
     return response.data;
   } catch (error) {
     console.error('Error fetching match history:', error);
@@ -261,7 +273,7 @@ export async function getMatchHistory(): Promise<MatchResult[]> {
 export async function createPlayer(name: string): Promise<Player | null> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    const response = await axiosInstance.post('/players', { name });
+    const response = await axiosInstance.post('/players/', { name });
     return response.data;
   } catch (error) {
     console.error('Error creating player:', error);
@@ -297,7 +309,7 @@ export async function getHeadToHead(player1_id: string, player2_id: string): Pro
 export async function deletePlayer(player_id: string): Promise<void> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    await axiosInstance.delete(`/player/${player_id}`);
+    await axiosInstance.delete(`/player/${player_id}/`);
   } catch (error) {
     console.error('Error deleting player:', error);
   }
@@ -306,7 +318,7 @@ export async function deletePlayer(player_id: string): Promise<void> {
 export async function updatePlayer(player_id: string, newName: string): Promise<void> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    await axiosInstance.put(`/player/${player_id}`, { name: newName });
+    await axiosInstance.put(`/player/${player_id}/`, { name: newName });
   } catch (error) {
     console.error('Error updating player:', error);
   }
@@ -315,7 +327,7 @@ export async function updatePlayer(player_id: string, newName: string): Promise<
 export async function updateMatch(match_id: string, player1_goals: number, player2_goals: number): Promise<void> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    await axiosInstance.put(`/matches/${match_id}`, { player1_goals, player2_goals });
+    await axiosInstance.put(`/matches/${match_id}/`, { player1_goals, player2_goals });
   } catch (error) {
     console.error('Error updating match:', error);
   }
@@ -324,7 +336,7 @@ export async function updateMatch(match_id: string, player1_goals: number, playe
 export async function deleteMatch(match_id: string): Promise<void> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    await axiosInstance.delete(`/matches/${match_id}`);
+    await axiosInstance.delete(`/matches/${match_id}/`);
   } catch (error) {
     console.error('Error deleting match:', error);
   }
@@ -333,7 +345,7 @@ export async function deleteMatch(match_id: string): Promise<void> {
 export async function getPlayerStats(player_id: string): Promise<DetailedPlayerStats | null> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    const response = await axiosInstance.get(`/players/${player_id}/stats`);
+    const response = await axiosInstance.get(`/players/${player_id}/stats/`);
     return response.data;
   } catch (error) {
     console.error('Error fetching player stats:', error);
