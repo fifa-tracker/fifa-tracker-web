@@ -63,6 +63,13 @@ const createAuthenticatedRequest = () => {
   
   console.log('Creating authenticated request with base URL:', freshApiBaseUrl);
   
+  // Force HTTPS for production environments
+  let finalBaseUrl = freshApiBaseUrl;
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+    finalBaseUrl = freshApiBaseUrl.replace('http://', 'https://');
+    console.log('Forced HTTPS base URL:', finalBaseUrl);
+  }
+  
   const config: {
     baseURL: string;
     headers?: {
@@ -70,7 +77,7 @@ const createAuthenticatedRequest = () => {
       'Content-Type': string;
     };
   } = {
-    baseURL: freshApiBaseUrl,
+    baseURL: finalBaseUrl,
   };
   
   if (token) {
@@ -82,11 +89,21 @@ const createAuthenticatedRequest = () => {
   
   const axiosInstance = axios.create(config);
   
-  // Add request interceptor to log the actual request URL
+  // Add request interceptor to log the actual request URL and add cache-busting
   axiosInstance.interceptors.request.use(
     (config) => {
       const fullUrl = (config.baseURL || '') + (config.url || '');
       console.log('Making request to:', fullUrl);
+      
+      // Add cache-busting headers for production
+      if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+        if (config.headers) {
+          config.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+          config.headers['Pragma'] = 'no-cache';
+          config.headers['Expires'] = '0';
+        }
+      }
+      
       return config;
     },
     (error) => {
@@ -150,6 +167,23 @@ export async function recordMatch(player1_id: string, player2_id: string, team1:
     // Log the full URL being used
     const fullUrl = `${axiosInstance.defaults.baseURL}/matches`;
     console.log('Making POST request to:', fullUrl);
+    
+    // Test the connection first
+    if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+      console.log('Testing HTTPS connection to ngrok...');
+      try {
+        const testResponse = await fetch(`${axiosInstance.defaults.baseURL}/players`, {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
+        console.log('HTTPS test successful:', testResponse.status);
+      } catch (testError) {
+        console.error('HTTPS test failed:', testError);
+      }
+    }
     
     const response = await axiosInstance.post('/matches', {
       player1_id,
