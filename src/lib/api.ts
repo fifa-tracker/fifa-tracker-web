@@ -13,8 +13,18 @@ const getApiBaseUrl = () => {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
       return `${API_BASE_URL_LOCAL}/api/v1`;
     }
-    // Production - use ngrok URL or relative URL
-    return `${API_BASE_URL_NGROK}/api/v1`;
+    
+    // Production - ensure HTTPS for ngrok URLs to avoid mixed content issues
+    if (API_BASE_URL_NGROK) {
+      // Force HTTPS for ngrok URLs
+      const ngrokUrl = API_BASE_URL_NGROK.replace('http://', 'https://');
+      console.log('Using ngrok URL:', ngrokUrl);
+      return `${ngrokUrl}/api/v1`;
+    }
+    
+    // Fallback to localhost if no ngrok URL is configured
+    console.warn('No ngrok URL configured, falling back to localhost');
+    return `${API_BASE_URL_LOCAL}/api/v1`;
   }
   // Server-side rendering - default to localhost
   return `${API_BASE_URL_LOCAL}/api/v1`;
@@ -123,6 +133,26 @@ export async function recordMatch(player1_id: string, player2_id: string, team1:
     return response.data;
   } catch (error) {
     console.error('Error recording match:', error);
+    
+    // Check for mixed content error specifically
+    if (axios.isAxiosError(error) && error.code === 'ERR_NETWORK') {
+      console.error('Network error detected. This might be due to:');
+      console.error('1. Mixed content: HTTPS frontend trying to connect to HTTP backend');
+      console.error('2. CORS issues');
+      console.error('3. Backend server not running');
+      console.error('Current API URL:', API_BASE_URL);
+      
+      // Check if we're using HTTP in production
+      if (typeof window !== 'undefined' && 
+          window.location.protocol === 'https:' && 
+          API_BASE_URL.startsWith('http:')) {
+        console.error('MIXED CONTENT ERROR: Frontend is HTTPS but API is HTTP');
+        console.error('Solution: Use HTTPS ngrok URL in environment variables');
+        console.error('Current ngrok URL:', API_BASE_URL_NGROK);
+        console.error('Expected format: https://your-ngrok-url.ngrok-free.app');
+      }
+    }
+    
     return null;
   }
 }
