@@ -91,14 +91,25 @@ export default function LogMatch({ players, tournaments, selectedTournamentId, o
           <label className="block text-sm font-medium mb-2 mt-4">
             Player 1 Score
           </label>
-          <input
-            type="number"
-            value={formData.player1_goals}
-            onChange={(e) =>
-              handleInputChange("player1_goals", parseInt(e.target.value) || 0)
-            }
-            className="w-full bg-[#2d3748] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm sm:text-base"
-          />
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              onClick={() => handleInputChange("player1_goals", Math.max(0, formData.player1_goals - 1))}
+              className="w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold hover:bg-[#374151] transition-colors"
+            >
+              -
+            </button>
+            <div className="flex-1 bg-[#2d3748] border border-gray-600 rounded-lg px-4 py-3 text-center">
+              <span className="text-white text-2xl font-bold">{formData.player1_goals}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleInputChange("player1_goals", formData.player1_goals + 1)}
+              className="w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold hover:bg-[#374151] transition-colors"
+            >
+              +
+            </button>
+          </div>
         </div>
 
         <div>
@@ -128,14 +139,25 @@ export default function LogMatch({ players, tournaments, selectedTournamentId, o
           <label className="block text-sm font-medium mb-2 mt-4">
             Player 2 Score
           </label>
-          <input
-            type="number"
-            value={formData.player2_goals}
-            onChange={(e) =>
-              handleInputChange("player2_goals", parseInt(e.target.value) || 0)
-            }
-            className="w-full bg-[#2d3748] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm sm:text-base"
-          />
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              onClick={() => handleInputChange("player2_goals", Math.max(0, formData.player2_goals - 1))}
+              className="w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold hover:bg-[#374151] transition-colors"
+            >
+              -
+            </button>
+            <div className="flex-1 bg-[#2d3748] border border-gray-600 rounded-lg px-4 py-3 text-center">
+              <span className="text-white text-2xl font-bold">{formData.player2_goals}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleInputChange("player2_goals", formData.player2_goals + 1)}
+              className="w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold hover:bg-[#374151] transition-colors"
+            >
+              +
+            </button>
+          </div>
         </div>
       </div>
 
