@@ -74,6 +74,7 @@ export default function MatchHistory({
   const [editForm, setEditForm] = useState({
     player1_goals: 0,
     player2_goals: 0,
+    half_length: 4,
   });
   const [toasts, setToasts] = useState<Toast[]>([]);
 
@@ -98,6 +99,7 @@ export default function MatchHistory({
     setEditForm({
       player1_goals: match.player1_goals,
       player2_goals: match.player2_goals,
+      half_length: match.half_length,
     });
   };
 
@@ -108,7 +110,8 @@ export default function MatchHistory({
       await updateMatch(
         editingMatch,
         editForm.player1_goals,
-        editForm.player2_goals
+        editForm.player2_goals,
+        editForm.half_length
       );
       setEditingMatch(null);
       showToast('Match updated successfully!', 'success');
@@ -211,6 +214,25 @@ export default function MatchHistory({
                             {match.player2_name}
                           </div>
                         </div>
+                        <div className="flex items-center space-x-2">
+                          <label className="text-sm font-medium text-gray-300">
+                            Half Length:
+                          </label>
+                          <input
+                            type="number"
+                            min="3"
+                            max="6"
+                            value={editForm.half_length}
+                            onChange={e =>
+                              setEditForm(prev => ({
+                                ...prev,
+                                half_length: parseInt(e.target.value) || 4,
+                              }))
+                            }
+                            className="w-16 bg-[#1a1f2e] border border-gray-600 rounded-lg px-2 py-1 text-white text-center text-sm"
+                          />
+                          <span className="text-sm text-gray-400">minutes</span>
+                        </div>
                         <div className="flex space-x-1 sm:space-x-2">
                           <button
                             onClick={handleSaveEdit}
@@ -228,34 +250,43 @@ export default function MatchHistory({
                       </div>
                     ) : (
                       // Display Mode
-                      <div className="flex items-center justify-between">
-                        <div className="font-medium text-sm sm:text-base text-left flex-1">
-                          {match.player1_name}
-                        </div>
-                        <div className="bg-gray-600 px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-center mx-4">
-                          {match.player1_goals} - {match.player2_goals}
-                        </div>
-                        <div className="font-medium text-sm sm:text-base text-right flex-1">
-                          {match.player2_name}
-                        </div>
-                        {isTournamentCreator && (
-                          <div className="flex space-x-1 sm:space-x-2 ml-2 sm:ml-4">
-                            <button
-                              onClick={() => handleEditClick(match)}
-                              className="bg-blue-500 hover:bg-blue-600 text-white p-1.5 sm:p-2 rounded transition-colors"
-                              title="Edit match"
-                            >
-                              <PencilIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteMatch(match.id)}
-                              className="bg-red-500 hover:bg-red-600 text-white p-1.5 sm:p-2 rounded transition-colors"
-                              title="Delete match"
-                            >
-                              <TrashIcon className="w-3 h-3 sm:w-4 sm:h-4" />
-                            </button>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="font-medium text-sm sm:text-base text-left flex-1">
+                            {match.player1_name}
                           </div>
-                        )}
+                          <div className="bg-gray-600 px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-center mx-4">
+                            {match.player1_goals} - {match.player2_goals}
+                          </div>
+                          <div className="font-medium text-sm sm:text-base text-right flex-1">
+                            {match.player2_name}
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-center flex-1">
+                            <span className="text-xs text-gray-400">
+                              Half Length: {match.half_length} minutes
+                            </span>
+                          </div>
+                          {isTournamentCreator && (
+                            <div className="flex space-x-1 sm:space-x-2">
+                              <button
+                                onClick={() => handleEditClick(match)}
+                                className="bg-blue-500 hover:bg-blue-600 text-white p-1.5 sm:p-2 rounded transition-colors"
+                                title="Edit match"
+                              >
+                                <PencilIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteMatch(match.id)}
+                                className="bg-red-500 hover:bg-red-600 text-white p-1.5 sm:p-2 rounded transition-colors"
+                                title="Delete match"
+                              >
+                                <TrashIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>

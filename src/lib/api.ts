@@ -2,7 +2,8 @@ import axios, { AxiosError } from 'axios';
 
 // Environment variables for API base URLs
 const API_BASE_URL_NGROK = process.env.NEXT_PUBLIC_API_BASE_URL_NGROK;
-const API_BASE_URL_LOCAL = process.env.NEXT_PUBLIC_API_BASE_URL_LOCAL || 'http://localhost:8000';
+const API_BASE_URL_LOCAL =
+  process.env.NEXT_PUBLIC_API_BASE_URL_LOCAL || 'http://localhost:8000';
 const ENVIRONMENT = process.env.NEXT_PUBLIC_ENVIRONMENT || process.env.NODE_ENV;
 
 // Dynamic API base URL that works for both local and network access
@@ -16,12 +17,15 @@ const getApiBaseUrl = () => {
       ngrokUrl = ngrokUrl.replace(/\/$/, ''); // Remove trailing slash if present
       return `${ngrokUrl}/api/v1`;
     }
-    
+
     // Check if we're in development (localhost)
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    if (
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1'
+    ) {
       return `${API_BASE_URL_LOCAL}/api/v1`;
     }
-    
+
     // Production - ensure HTTPS for ngrok URLs to avoid mixed content issues
     if (API_BASE_URL_NGROK) {
       // Force HTTPS for ngrok URLs and ensure no trailing slash
@@ -29,7 +33,7 @@ const getApiBaseUrl = () => {
       ngrokUrl = ngrokUrl.replace(/\/$/, ''); // Remove trailing slash if present
       return `${ngrokUrl}/api/v1`;
     }
-    
+
     // Fallback to localhost if no ngrok URL is configured
     console.warn('No ngrok URL configured, falling back to localhost');
     return `${API_BASE_URL_LOCAL}/api/v1`;
@@ -45,13 +49,16 @@ console.log('API Configuration:', {
   API_BASE_URL_NGROK,
   API_BASE_URL_LOCAL,
   ENVIRONMENT,
-  finalApiBaseUrl: API_BASE_URL
+  finalApiBaseUrl: API_BASE_URL,
 });
 
 // Debug logging to help troubleshoot API URL issues
 if (typeof window !== 'undefined') {
   // Validate that we're using HTTPS in production
-  if (window.location.protocol === 'https:' && API_BASE_URL.startsWith('http:')) {
+  if (
+    window.location.protocol === 'https:' &&
+    API_BASE_URL.startsWith('http:')
+  ) {
     console.error('SECURITY WARNING: Using HTTP API URL in HTTPS environment!');
     console.error('This will cause mixed content errors.');
   }
@@ -68,64 +75,68 @@ const getAccessToken = (): string | null => {
 // Helper function to create authenticated axios instance
 const createAuthenticatedRequest = () => {
   const token = getAccessToken();
-  
+
   // Get fresh API base URL to avoid caching issues
   const freshApiBaseUrl = getApiBaseUrl();
-  
+
   // Force HTTPS for production environments
   let finalBaseUrl = freshApiBaseUrl;
   if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
     finalBaseUrl = freshApiBaseUrl.replace('http://', 'https://');
   }
-  
+
   console.log('Creating authenticated request:', {
     hasToken: !!token,
     tokenLength: token?.length,
-    baseURL: finalBaseUrl
+    baseURL: finalBaseUrl,
   });
-  
+
   const config: {
     baseURL: string;
     headers?: {
-      'Authorization': string;
+      Authorization: string;
       'Content-Type': string;
     };
   } = {
     baseURL: finalBaseUrl,
   };
-  
+
   if (token) {
     config.headers = {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     };
   }
-  
+
   const axiosInstance = axios.create(config);
-  
+
   // Add request interceptor to log the actual request URL and add cache-busting
   axiosInstance.interceptors.request.use(
-    (config) => {
+    config => {
       // Add cache-busting headers for production
-      if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
+      if (
+        typeof window !== 'undefined' &&
+        window.location.protocol === 'https:'
+      ) {
         if (config.headers) {
-          config.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+          config.headers['Cache-Control'] =
+            'no-cache, no-store, must-revalidate';
           config.headers['Pragma'] = 'no-cache';
           config.headers['Expires'] = '0';
         }
       }
-      
+
       return config;
     },
-    (error) => {
+    error => {
       return Promise.reject(error);
     }
   );
-  
+
   // Add response interceptor to handle authentication errors
   axiosInstance.interceptors.response.use(
-    (response) => response,
-    async (error) => {
+    response => response,
+    async error => {
       if (error.response?.status === 401) {
         // Try to refresh the token
         const newToken = await refreshToken();
@@ -134,7 +145,7 @@ const createAuthenticatedRequest = () => {
           localStorage.removeItem('fifa-tracker-token');
           localStorage.removeItem('fifa-tracker-user');
           localStorage.removeItem('fifa-tracker-refresh-token');
-          
+
           // Redirect to login page if we're in a browser environment
           if (typeof window !== 'undefined') {
             window.location.href = '/auth';
@@ -144,7 +155,7 @@ const createAuthenticatedRequest = () => {
       return Promise.reject(error);
     }
   );
-  
+
   return axiosInstance;
 };
 
@@ -152,7 +163,10 @@ export async function getPlayers(): Promise<Player[]> {
   try {
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.get('/players/');
-    return response.data.map((player: Player) => ({ name: player.name, id: player.id })); // Updated return statement
+    return response.data.map((player: Player) => ({
+      name: player.name,
+      id: player.id,
+    })); // Updated return statement
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
@@ -162,7 +176,9 @@ export async function getPlayers(): Promise<Player[]> {
         config: axiosError.config,
       });
       if (axiosError.code === 'ECONNREFUSED') {
-        console.error('Unable to connect to the API server. Please check if the server is running.');
+        console.error(
+          'Unable to connect to the API server. Please check if the server is running.'
+        );
       }
     } else {
       console.error('Unexpected error:', error);
@@ -171,10 +187,19 @@ export async function getPlayers(): Promise<Player[]> {
   }
 }
 
-export async function recordMatch(player1_id: string, player2_id: string, team1: string, team2: string, player1_goals: number, player2_goals: number, tournament_id: string): Promise<Match | null> {
+export async function recordMatch(
+  player1_id: string,
+  player2_id: string,
+  team1: string,
+  team2: string,
+  player1_goals: number,
+  player2_goals: number,
+  tournament_id: string,
+  half_length: number
+): Promise<Match | null> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    
+
     const response = await axiosInstance.post('/matches/', {
       player1_id,
       player2_id,
@@ -182,31 +207,36 @@ export async function recordMatch(player1_id: string, player2_id: string, team1:
       team2,
       player1_goals,
       player2_goals,
-      tournament_id
+      tournament_id,
+      half_length,
     });
     return response.data;
   } catch (error) {
     console.error('Error recording match:', error);
-    
+
     // Check for mixed content error specifically
     if (axios.isAxiosError(error) && error.code === 'ERR_NETWORK') {
       console.error('Network error detected. This might be due to:');
-      console.error('1. Mixed content: HTTPS frontend trying to connect to HTTP backend');
+      console.error(
+        '1. Mixed content: HTTPS frontend trying to connect to HTTP backend'
+      );
       console.error('2. CORS issues');
       console.error('3. Backend server not running');
       console.error('Current API URL:', API_BASE_URL);
-      
+
       // Check if we're using HTTP in production
-      if (typeof window !== 'undefined' && 
-          window.location.protocol === 'https:' && 
-          API_BASE_URL.startsWith('http:')) {
+      if (
+        typeof window !== 'undefined' &&
+        window.location.protocol === 'https:' &&
+        API_BASE_URL.startsWith('http:')
+      ) {
         console.error('MIXED CONTENT ERROR: Frontend is HTTPS but API is HTTP');
         console.error('Solution: Use HTTPS ngrok URL in environment variables');
         console.error('Current ngrok URL:', API_BASE_URL_NGROK);
         console.error('Expected format: https://your-ngrok-url.ngrok-free.app');
       }
     }
-    
+
     return null;
   }
 }
@@ -227,8 +257,8 @@ export async function getTable(): Promise<PlayerStats[]> {
         config: {
           url: error.config?.url,
           method: error.config?.method,
-          timeout: error.config?.timeout
-        }
+          timeout: error.config?.timeout,
+        },
       });
     }
     return [];
@@ -257,12 +287,15 @@ export async function createPlayer(name: string): Promise<Player | null> {
   }
 }
 
-export async function getHeadToHead(player1_id: string, player2_id: string): Promise<{
-  player1_wins: number,
-  player2_wins: number,
-  draws: number,
-  player1_goals: number,
-  player2_goals: number
+export async function getHeadToHead(
+  player1_id: string,
+  player2_id: string
+): Promise<{
+  player1_wins: number;
+  player2_wins: number;
+  draws: number;
+  player1_goals: number;
+  player2_goals: number;
 }> {
   try {
     const axiosInstance = createAuthenticatedRequest();
@@ -277,7 +310,7 @@ export async function getHeadToHead(player1_id: string, player2_id: string): Pro
       player2_wins: 0,
       draws: 0,
       player1_goals: 0,
-      player2_goals: 0
+      player2_goals: 0,
     };
   }
 }
@@ -291,7 +324,10 @@ export async function deletePlayer(player_id: string): Promise<void> {
   }
 }
 
-export async function updatePlayer(player_id: string, newName: string): Promise<void> {
+export async function updatePlayer(
+  player_id: string,
+  newName: string
+): Promise<void> {
   try {
     const axiosInstance = createAuthenticatedRequest();
     await axiosInstance.put(`/player/${player_id}/`, { name: newName });
@@ -300,10 +336,19 @@ export async function updatePlayer(player_id: string, newName: string): Promise<
   }
 }
 
-export async function updateMatch(match_id: string, player1_goals: number, player2_goals: number): Promise<void> {
+export async function updateMatch(
+  match_id: string,
+  player1_goals: number,
+  player2_goals: number,
+  half_length: number
+): Promise<void> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    await axiosInstance.put(`/matches/${match_id}/`, { player1_goals, player2_goals });
+    await axiosInstance.put(`/matches/${match_id}/`, {
+      player1_goals,
+      player2_goals,
+      half_length,
+    });
   } catch (error) {
     console.error('Error updating match:', error);
   }
@@ -318,7 +363,9 @@ export async function deleteMatch(match_id: string): Promise<void> {
   }
 }
 
-export async function getPlayerStats(player_id: string): Promise<DetailedPlayerStats | null> {
+export async function getPlayerStats(
+  player_id: string
+): Promise<DetailedPlayerStats | null> {
   try {
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.get(`/players/${player_id}/stats/`);
@@ -348,15 +395,17 @@ export async function getTournaments(): Promise<Tournament[]> {
           url: error.config?.url,
           method: error.config?.method,
           baseURL: error.config?.baseURL,
-          headers: error.config?.headers
-        }
+          headers: error.config?.headers,
+        },
       });
     }
     return [];
   }
 }
 
-export async function getTournament(tournament_id: string): Promise<Tournament | null> {
+export async function getTournament(
+  tournament_id: string
+): Promise<Tournament | null> {
   try {
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.get(`/tournaments/${tournament_id}/`);
@@ -367,7 +416,15 @@ export async function getTournament(tournament_id: string): Promise<Tournament |
   }
 }
 
-export async function updateTournament(tournament_id: string, name?: string, description?: string, player_ids?: string[], completed?: boolean, start_date?: string, end_date?: string): Promise<Tournament | null> {
+export async function updateTournament(
+  tournament_id: string,
+  name?: string,
+  description?: string,
+  player_ids?: string[],
+  completed?: boolean,
+  start_date?: string,
+  end_date?: string
+): Promise<Tournament | null> {
   try {
     const axiosInstance = createAuthenticatedRequest();
     const payload: Record<string, unknown> = {};
@@ -377,8 +434,11 @@ export async function updateTournament(tournament_id: string, name?: string, des
     if (completed !== undefined) payload.completed = completed;
     if (start_date !== undefined) payload.start_date = start_date;
     if (end_date !== undefined) payload.end_date = end_date;
-    
-    const response = await axiosInstance.put(`/tournaments/${tournament_id}/`, payload);
+
+    const response = await axiosInstance.put(
+      `/tournaments/${tournament_id}/`,
+      payload
+    );
     return response.data;
   } catch (error) {
     console.error('Error updating tournament:', error);
@@ -386,11 +446,18 @@ export async function updateTournament(tournament_id: string, name?: string, des
   }
 }
 
-export async function createTournament(name: string, description: string, player_ids: string[]): Promise<Tournament | null> {
-
+export async function createTournament(
+  name: string,
+  description: string,
+  player_ids: string[]
+): Promise<Tournament | null> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    const response = await axiosInstance.post('/tournaments/', { name, description, player_ids });
+    const response = await axiosInstance.post('/tournaments/', {
+      name,
+      description,
+      player_ids,
+    });
     return response.data;
   } catch (error) {
     console.error('Error creating tournament:', error);
@@ -407,48 +474,68 @@ export async function deleteTournament(tournament_id: string): Promise<void> {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 403) {
-        throw new Error('You do not have permission to delete this tournament. Only the tournament owner can delete it.');
+        throw new Error(
+          'You do not have permission to delete this tournament. Only the tournament owner can delete it.'
+        );
       } else if (axiosError.response?.status === 404) {
         throw new Error('Tournament not found.');
       } else if (axiosError.response?.status === 401) {
         throw new Error('Authentication required. Please log in again.');
       } else {
         const errorData = axiosError.response?.data as Record<string, unknown>;
-        throw new Error(`Failed to delete tournament: ${errorData?.detail || axiosError.message}`);
+        throw new Error(
+          `Failed to delete tournament: ${errorData?.detail || axiosError.message}`
+        );
       }
     }
     throw new Error('Failed to delete tournament. Please try again.');
   }
 }
 
-export async function addPlayerToTournament(tournament_id: string, player_id: string): Promise<void> {
+export async function addPlayerToTournament(
+  tournament_id: string,
+  player_id: string
+): Promise<void> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    await axiosInstance.post(`/tournaments/${tournament_id}/players`, { player_id });
+    await axiosInstance.post(`/tournaments/${tournament_id}/players`, {
+      player_id,
+    });
   } catch (error) {
     console.error('Error adding player to tournament:', error);
   }
 }
 
-export async function removePlayerFromTournament(tournament_id: string, player_id: string): Promise<void> {
+export async function removePlayerFromTournament(
+  tournament_id: string,
+  player_id: string
+): Promise<void> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    await axiosInstance.delete(`/tournaments/${tournament_id}/players/${player_id}`);
+    await axiosInstance.delete(
+      `/tournaments/${tournament_id}/players/${player_id}`
+    );
   } catch (error) {
     console.error('Error removing player from tournament:', error);
   }
 }
 
-export async function getTournamentPlayers(tournament_id: string): Promise<Player[]> {
+export async function getTournamentPlayers(
+  tournament_id: string
+): Promise<Player[]> {
   try {
     // Guard against empty tournament ID
     if (!tournament_id || tournament_id.trim() === '') {
-      console.warn('Attempted to fetch tournament players with empty tournament ID');
+      console.warn(
+        'Attempted to fetch tournament players with empty tournament ID'
+      );
       return [];
     }
 
     const axiosInstance = createAuthenticatedRequest();
-    const response = await axiosInstance.get(`/tournaments/${tournament_id}/players`);
+    const response = await axiosInstance.get(
+      `/tournaments/${tournament_id}/players`
+    );
     return response.data;
   } catch (error) {
     console.error('Error fetching tournament players:', error);
@@ -456,16 +543,22 @@ export async function getTournamentPlayers(tournament_id: string): Promise<Playe
   }
 }
 
-export async function getTournamentMatches(tournament_id: string): Promise<MatchResult[]> {
+export async function getTournamentMatches(
+  tournament_id: string
+): Promise<MatchResult[]> {
   try {
     // Guard against empty tournament ID
     if (!tournament_id || tournament_id.trim() === '') {
-      console.warn('Attempted to fetch tournament matches with empty tournament ID');
+      console.warn(
+        'Attempted to fetch tournament matches with empty tournament ID'
+      );
       return [];
     }
 
     const axiosInstance = createAuthenticatedRequest();
-    const response = await axiosInstance.get(`/tournaments/${tournament_id}/matches`);
+    const response = await axiosInstance.get(
+      `/tournaments/${tournament_id}/matches`
+    );
     return response.data;
   } catch (error) {
     console.error('Error fetching tournament matches:', error);
@@ -473,16 +566,22 @@ export async function getTournamentMatches(tournament_id: string): Promise<Match
   }
 }
 
-export async function getTournamentStandings(tournament_id: string): Promise<PlayerStats[]> {
+export async function getTournamentStandings(
+  tournament_id: string
+): Promise<PlayerStats[]> {
   try {
     // Guard against empty tournament ID
     if (!tournament_id || tournament_id.trim() === '') {
-      console.warn('Attempted to fetch tournament standings with empty tournament ID');
+      console.warn(
+        'Attempted to fetch tournament standings with empty tournament ID'
+      );
       return [];
     }
 
     const axiosInstance = createAuthenticatedRequest();
-    const response = await axiosInstance.get(`/tournaments/${tournament_id}/stats`);
+    const response = await axiosInstance.get(
+      `/tournaments/${tournament_id}/stats`
+    );
     return response.data;
   } catch (error) {
     console.error('Error fetching tournament standings:', error);
@@ -490,12 +589,15 @@ export async function getTournamentStandings(tournament_id: string): Promise<Pla
   }
 }
 
-export async function register(name: string, email: string, password: string, username?: string): Promise<User | null> {
+export async function register(
+  name: string,
+  email: string,
+  password: string,
+  username: string
+): Promise<User | null> {
   try {
-    const payload = username 
-      ? { name, email, password, username }
-      : { name, email, password };
-    
+    const payload = { name, email, password, username };
+
     const response = await axios.post(`${API_BASE_URL}/auth/register`, payload);
     return response.data;
   } catch (error) {
@@ -504,23 +606,32 @@ export async function register(name: string, email: string, password: string, us
   }
 }
 
-export async function login(identifier: string, password: string): Promise<User | null> {
+export async function login(
+  identifier: string,
+  password: string
+): Promise<User | null> {
   try {
     // The API expects username field, so we'll use the identifier as username
     const payload = { username: identifier, password };
-    
-    const response = await axios.post(`${API_BASE_URL}/auth/login-json`, payload);
-    
+
+    const response = await axios.post(
+      `${API_BASE_URL}/auth/login-json`,
+      payload
+    );
+
     // Store the access token if it's included in the response
     if (response.data.access_token) {
       localStorage.setItem('fifa-tracker-token', response.data.access_token);
     }
-    
+
     // Store refresh token if provided
     if (response.data.refresh_token) {
-      localStorage.setItem('fifa-tracker-refresh-token', response.data.refresh_token);
+      localStorage.setItem(
+        'fifa-tracker-refresh-token',
+        response.data.refresh_token
+      );
     }
-    
+
     return response.data;
   } catch (error) {
     console.error('Error logging in:', error);
@@ -532,8 +643,8 @@ export async function login(identifier: string, password: string): Promise<User 
         config: {
           url: error.config?.url,
           method: error.config?.method,
-          headers: error.config?.headers
-        }
+          headers: error.config?.headers,
+        },
       });
     }
     return null;
@@ -546,16 +657,16 @@ export async function refreshToken(): Promise<string | null> {
     if (!refreshToken) {
       return null;
     }
-    
+
     const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-      refresh_token: refreshToken
+      refresh_token: refreshToken,
     });
-    
+
     if (response.data.access_token) {
       localStorage.setItem('fifa-tracker-token', response.data.access_token);
       return response.data.access_token;
     }
-    
+
     return null;
   } catch (error) {
     console.error('Error refreshing token:', error);
@@ -577,10 +688,12 @@ export async function getCurrentUser(): Promise<User | null> {
   }
 }
 
-export async function checkUsernameAvailability(username: string): Promise<boolean> {
+export async function checkUsernameAvailability(
+  username: string
+): Promise<boolean> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    const payload = {username: username};
+    const payload = { username: username };
     const response = await axiosInstance.post(`/auth/check-username`, payload);
     return !response.data.exists;
   } catch (error) {
@@ -590,7 +703,12 @@ export async function checkUsernameAvailability(username: string): Promise<boole
   }
 }
 
-export async function updateUserProfile(id: string, name?: string, email?: string, username?: string): Promise<User | null> {
+export async function updateUserProfile(
+  id: string,
+  name?: string,
+  email?: string,
+  username?: string
+): Promise<User | null> {
   try {
     const axiosInstance = createAuthenticatedRequest();
     const payload: {
@@ -599,7 +717,7 @@ export async function updateUserProfile(id: string, name?: string, email?: strin
       email?: string;
       username?: string;
     } = { id, name, email, username };
-    if(id == ''){
+    if (id == '') {
       return null;
     }
     const response = await axiosInstance.put(`/players/${id}`, payload);
@@ -610,11 +728,13 @@ export async function updateUserProfile(id: string, name?: string, email?: strin
   }
 }
 
-export async function deleteUserAccount(confirmationText: string): Promise<boolean> {
+export async function deleteUserAccount(
+  confirmationText: string
+): Promise<boolean> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    await axiosInstance.delete('/auth/me', { 
-      data: { confirmation_text: confirmationText }
+    await axiosInstance.delete('/auth/me', {
+      data: { confirmation_text: confirmationText },
     });
     return true;
   } catch (error) {
@@ -623,14 +743,16 @@ export async function deleteUserAccount(confirmationText: string): Promise<boole
   }
 }
 
-export async function getCurrentUserStats(player_id: string): Promise<UserDetailedStats | null> {
+export async function getCurrentUserStats(
+  player_id: string
+): Promise<UserDetailedStats | null> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    if(player_id == ''){
+    if (player_id == '') {
       return null;
     }
     const response = await axiosInstance.get(`/players/${player_id}/stats/`);
-    
+
     // The API returns a single UserDetailedStats object, not an array
     return response.data || null;
   } catch (error) {
@@ -659,7 +781,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  username?: string;
+  username: string;
   access_token?: string;
 }
 
@@ -672,6 +794,7 @@ export interface Match {
   team1: string;
   team2: string;
   date: string;
+  half_length: number;
 }
 
 export interface Tournament {
@@ -685,13 +808,14 @@ export interface Tournament {
   owner_id?: string;
 }
 
-export interface MatchResult  {
+export interface MatchResult {
   id: string;
   player1_name: string;
   player2_name: string;
   player1_goals: number;
   player2_goals: number;
   date: string;
+  half_length: number;
 }
 
 export interface PlayerStats {
@@ -761,4 +885,3 @@ export interface UserDetailedStats {
   tournaments_played: number;
   tournament_ids: string[];
 }
-

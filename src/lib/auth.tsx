@@ -1,7 +1,13 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { login, register, User, getCurrentUser } from './api';
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
+import { getCurrentUser, login, register, User } from './api';
 
 interface AuthContextType {
   user: User | null;
@@ -9,7 +15,12 @@ interface AuthContextType {
   isLoading: boolean;
   accessToken: string | null;
   signIn: (identifier: string, password: string) => Promise<boolean>;
-  signUp: (name: string, email: string, password: string, username?: string) => Promise<boolean>;
+  signUp: (
+    name: string,
+    email: string,
+    password: string,
+    username: string
+  ) => Promise<boolean>;
   signOut: () => void;
   updateUser: (userData: User) => void;
 }
@@ -26,18 +37,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const checkAuth = async () => {
       const savedUser = localStorage.getItem('fifa-tracker-user');
       const savedToken = localStorage.getItem('fifa-tracker-token');
-      
+
       if (savedUser && savedToken) {
         try {
           const userData = JSON.parse(savedUser);
           setUser(userData);
           setAccessToken(savedToken);
-          
+
           // Fetch fresh user data from backend
           const currentUser = await getCurrentUser();
           if (currentUser) {
             setUser(currentUser);
-            localStorage.setItem('fifa-tracker-user', JSON.stringify(currentUser));
+            localStorage.setItem(
+              'fifa-tracker-user',
+              JSON.stringify(currentUser)
+            );
           }
         } catch (error) {
           console.error('Error parsing saved user data:', error);
@@ -52,22 +66,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     checkAuth();
   }, []);
 
-  const signIn = async (identifier: string, password: string): Promise<boolean> => {
+  const signIn = async (
+    identifier: string,
+    password: string
+  ): Promise<boolean> => {
     try {
       const user = await login(identifier, password);
       if (!user) {
         return false;
       }
-      
+
       // Get the access token from the response or localStorage
-      const token = user.access_token || localStorage.getItem('fifa-tracker-token');
-      
+      const token =
+        user.access_token || localStorage.getItem('fifa-tracker-token');
+
       // Store refresh token if provided
       const userWithRefreshToken = user as User & { refresh_token?: string };
       if (userWithRefreshToken.refresh_token) {
-        localStorage.setItem('fifa-tracker-refresh-token', userWithRefreshToken.refresh_token);
+        localStorage.setItem(
+          'fifa-tracker-refresh-token',
+          userWithRefreshToken.refresh_token
+        );
       }
-      
+
       // Fetch complete user profile from backend
       const currentUser = await getCurrentUser();
       if (currentUser) {
@@ -84,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(userData);
         localStorage.setItem('fifa-tracker-user', JSON.stringify(userData));
       }
-      
+
       setAccessToken(token);
       if (token) {
         localStorage.setItem('fifa-tracker-token', token);
@@ -96,23 +117,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUp = async (name: string, email: string, password: string, username?: string): Promise<boolean> => {
+  const signUp = async (
+    name: string,
+    email: string,
+    password: string,
+    username: string
+  ): Promise<boolean> => {
     try {
       // Call the real registration API
       const user = await register(name, email, password, username);
       if (!user) {
         return false;
       }
-      
+
       // Get the access token from the response or localStorage
-      const token = user.access_token || localStorage.getItem('fifa-tracker-token');
-      
+      const token =
+        user.access_token || localStorage.getItem('fifa-tracker-token');
+
       // Store refresh token if provided
       const userWithRefreshToken = user as User & { refresh_token?: string };
       if (userWithRefreshToken.refresh_token) {
-        localStorage.setItem('fifa-tracker-refresh-token', userWithRefreshToken.refresh_token);
+        localStorage.setItem(
+          'fifa-tracker-refresh-token',
+          userWithRefreshToken.refresh_token
+        );
       }
-      
+
       // Fetch complete user profile from backend
       const currentUser = await getCurrentUser();
       if (currentUser) {
@@ -129,7 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(userData);
         localStorage.setItem('fifa-tracker-user', JSON.stringify(userData));
       }
-      
+
       setAccessToken(token);
       if (token) {
         localStorage.setItem('fifa-tracker-token', token);
@@ -165,11 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateUser,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
@@ -178,4 +204,4 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-} 
+}
