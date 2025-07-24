@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { login, User, getCurrentUser } from './api';
+import { login, register, User, getCurrentUser } from './api';
 
 interface AuthContextType {
   user: User | null;
@@ -98,23 +98,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (name: string, email: string, password: string, username?: string): Promise<boolean> => {
     try {
-      // Simulate API call - replace with actual registration
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Call the real registration API
+      const user = await register(name, email, password, username);
+      if (!user) {
+        return false;
+      }
       
-      const userData: User = {
-        id: Date.now().toString(),
-        email,
-        name,
-        username,
-      };
+      // Get the access token from the response or localStorage
+      const token = user.access_token || localStorage.getItem('fifa-tracker-token');
       
-      // For demo purposes, generate a mock token
-      const mockToken = `mock_token_${Date.now()}`;
+      // Store refresh token if provided
+      const userWithRefreshToken = user as User & { refresh_token?: string };
+      if (userWithRefreshToken.refresh_token) {
+        localStorage.setItem('fifa-tracker-refresh-token', userWithRefreshToken.refresh_token);
+      }
       
-      setUser(userData);
-      setAccessToken(mockToken);
-      localStorage.setItem('fifa-tracker-user', JSON.stringify(userData));
-      localStorage.setItem('fifa-tracker-token', mockToken);
+      // Fetch complete user profile from backend
+      const currentUser = await getCurrentUser();
+      if (currentUser) {
+        setUser(currentUser);
+        localStorage.setItem('fifa-tracker-user', JSON.stringify(currentUser));
+      } else {
+        // Fallback to registration response data if getCurrentUser fails
+        const userData: User = {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          username: user.username,
+        };
+        setUser(userData);
+        localStorage.setItem('fifa-tracker-user', JSON.stringify(userData));
+      }
+      
+      setAccessToken(token);
+      if (token) {
+        localStorage.setItem('fifa-tracker-token', token);
+      }
       return true;
     } catch (error) {
       console.error('Sign up error:', error);

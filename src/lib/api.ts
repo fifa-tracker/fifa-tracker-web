@@ -2,7 +2,7 @@ import axios, { AxiosError } from 'axios';
 
 // Environment variables for API base URLs
 const API_BASE_URL_NGROK = process.env.NEXT_PUBLIC_API_BASE_URL_NGROK;
-const API_BASE_URL_LOCAL = process.env.NEXT_PUBLIC_API_BASE_URL_LOCAL;
+const API_BASE_URL_LOCAL = process.env.NEXT_PUBLIC_API_BASE_URL_LOCAL || 'http://localhost:8000';
 const ENVIRONMENT = process.env.NEXT_PUBLIC_ENVIRONMENT || process.env.NODE_ENV;
 
 // Dynamic API base URL that works for both local and network access
@@ -40,6 +40,14 @@ const getApiBaseUrl = () => {
 
 const API_BASE_URL = getApiBaseUrl();
 
+// Debug logging
+console.log('API Configuration:', {
+  API_BASE_URL_NGROK,
+  API_BASE_URL_LOCAL,
+  ENVIRONMENT,
+  finalApiBaseUrl: API_BASE_URL
+});
+
 // Debug logging to help troubleshoot API URL issues
 if (typeof window !== 'undefined') {
   // Validate that we're using HTTPS in production
@@ -69,6 +77,12 @@ const createAuthenticatedRequest = () => {
   if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
     finalBaseUrl = freshApiBaseUrl.replace('http://', 'https://');
   }
+  
+  console.log('Creating authenticated request:', {
+    hasToken: !!token,
+    tokenLength: token?.length,
+    baseURL: finalBaseUrl
+  });
   
   const config: {
     baseURL: string;
@@ -318,11 +332,57 @@ export async function getPlayerStats(player_id: string): Promise<DetailedPlayerS
 export async function getTournaments(): Promise<Tournament[]> {
   try {
     const axiosInstance = createAuthenticatedRequest();
+    console.log('Making request to tournaments endpoint...');
     const response = await axiosInstance.get('/tournaments/');
+    console.log('Tournaments response:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching tournaments:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('Axios error details:', {
+        message: error.message,
+        code: error.code,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          baseURL: error.config?.baseURL,
+          headers: error.config?.headers
+        }
+      });
+    }
     return [];
+  }
+}
+
+export async function getTournament(tournament_id: string): Promise<Tournament | null> {
+  try {
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.get(`/tournaments/${tournament_id}/`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching tournament:', error);
+    return null;
+  }
+}
+
+export async function updateTournament(tournament_id: string, name?: string, description?: string, player_ids?: string[], completed?: boolean, start_date?: string, end_date?: string): Promise<Tournament | null> {
+  try {
+    const axiosInstance = createAuthenticatedRequest();
+    const payload: any = {};
+    if (name !== undefined) payload.name = name;
+    if (description !== undefined) payload.description = description;
+    if (player_ids !== undefined) payload.player_ids = player_ids;
+    if (completed !== undefined) payload.completed = completed;
+    if (start_date !== undefined) payload.start_date = start_date;
+    if (end_date !== undefined) payload.end_date = end_date;
+    
+    const response = await axiosInstance.put(`/tournaments/${tournament_id}/`, payload);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating tournament:', error);
+    return null;
   }
 }
 

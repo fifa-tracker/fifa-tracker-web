@@ -59,7 +59,6 @@ export default function MatchHistory({ matches }: MatchHistoryProps) {
   return (
     <div className="bg-[#1a1f2e] rounded-lg p-4 sm:p-6">
       <h2 className="text-xl sm:text-2xl font-bold mb-2">Match History</h2>
-      <p className="text-gray-400 mb-4 sm:mb-6 text-sm sm:text-base">Recent matches in Summer League 2023</p>
       
       <div className="space-y-6">
         {sortedDates.map((dateKey) => {
