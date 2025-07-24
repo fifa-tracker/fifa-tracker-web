@@ -45,7 +45,6 @@ export default function Home() {
     const fetchTournamentStandings = async (tournamentId: string) => {
       try {
         const standings = await getTournamentStandings(tournamentId);
-        console.log('Tournament standings:', standings);
         setTable(standings);
       } catch (error) {
         console.error('Error fetching tournament standings:', error);
@@ -90,7 +89,6 @@ export default function Home() {
         try {
           // Fetch standings for the selected tournament
           const standings = await getTournamentStandings(selectedTournament);
-          console.log('Tournament standings:', standings);
           setTable(standings);
         } catch (error) {
           console.error('Error fetching tournament standings:', error);
@@ -122,7 +120,6 @@ export default function Home() {
     if (tabId === 'tournament' && selectedTournament) {
       try {
         const standings = await getTournamentStandings(selectedTournament);
-        console.log('Tournament standings:', standings);
         setTable(standings);
       } catch (error) {
         console.error('Error fetching tournament standings:', error);

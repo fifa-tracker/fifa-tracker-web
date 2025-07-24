@@ -40,10 +40,7 @@ export default function ProfilePage() {
 
       try {
         setLoading(true);
-        console.log('User:', user);
-        console.log('Fetching user stats for user:', user.id);
         const stats = await getCurrentUserStats(user.id);
-        console.log('Fetched user stats:', stats);
         setUserStats(stats);
       } catch (error) {
         console.error('Error fetching user stats:', error);

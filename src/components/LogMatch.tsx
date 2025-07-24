@@ -34,7 +34,6 @@ export default function LogMatch({ players, tournaments, selectedTournamentId, o
 
   const handleSubmit = () => {
     // TODO: Implement match logging logic
-    console.log("Logging match:", formData);
     recordMatch(
       formData.player1_id,
       formData.player2_id,
@@ -45,7 +44,6 @@ export default function LogMatch({ players, tournaments, selectedTournamentId, o
       formData.tournament_id
     )
       .then(() => {
-        console.log("Match logged successfully");
         // Call the callback to redirect to History tab
         if (onMatchLogged) {
           onMatchLogged();

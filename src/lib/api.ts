@@ -2,11 +2,8 @@ import axios, { AxiosError } from 'axios';
 
 // Environment variables for API base URLs
 const API_BASE_URL_NGROK = process.env.NEXT_PUBLIC_API_BASE_URL_NGROK;
-console.log('API_BASE_URL_NGROK:', API_BASE_URL_NGROK);
 const API_BASE_URL_LOCAL = process.env.NEXT_PUBLIC_API_BASE_URL_LOCAL;
-console.log('API_BASE_URL_LOCAL:', API_BASE_URL_LOCAL);
 const ENVIRONMENT = process.env.NEXT_PUBLIC_ENVIRONMENT || process.env.NODE_ENV;
-console.log('ENVIRONMENT:', ENVIRONMENT);
 
 // Dynamic API base URL that works for both local and network access
 const getApiBaseUrl = () => {
@@ -17,7 +14,6 @@ const getApiBaseUrl = () => {
       // Production environment - use ngrok URL
       let ngrokUrl = API_BASE_URL_NGROK.replace('http://', 'https://');
       ngrokUrl = ngrokUrl.replace(/\/$/, ''); // Remove trailing slash if present
-      console.log('Production environment detected, using ngrok URL:', ngrokUrl);
       return `${ngrokUrl}/api/v1`;
     }
     
@@ -31,7 +27,6 @@ const getApiBaseUrl = () => {
       // Force HTTPS for ngrok URLs and ensure no trailing slash
       let ngrokUrl = API_BASE_URL_NGROK.replace('http://', 'https://');
       ngrokUrl = ngrokUrl.replace(/\/$/, ''); // Remove trailing slash if present
-      console.log('Using ngrok URL:', ngrokUrl);
       return `${ngrokUrl}/api/v1`;
     }
     
@@ -47,10 +42,6 @@ const API_BASE_URL = getApiBaseUrl();
 
 // Debug logging to help troubleshoot API URL issues
 if (typeof window !== 'undefined') {
-  console.log('API Base URL:', API_BASE_URL);
-  console.log('Current location:', window.location.href);
-  console.log('Current hostname:', window.location.hostname);
-  
   // Validate that we're using HTTPS in production
   if (window.location.protocol === 'https:' && API_BASE_URL.startsWith('http:')) {
     console.error('SECURITY WARNING: Using HTTP API URL in HTTPS environment!');
@@ -73,13 +64,10 @@ const createAuthenticatedRequest = () => {
   // Get fresh API base URL to avoid caching issues
   const freshApiBaseUrl = getApiBaseUrl();
   
-  console.log('Creating authenticated request with base URL:', freshApiBaseUrl);
-  
   // Force HTTPS for production environments
   let finalBaseUrl = freshApiBaseUrl;
   if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
     finalBaseUrl = freshApiBaseUrl.replace('http://', 'https://');
-    console.log('Forced HTTPS base URL:', finalBaseUrl);
   }
   
   const config: {
@@ -104,9 +92,6 @@ const createAuthenticatedRequest = () => {
   // Add request interceptor to log the actual request URL and add cache-busting
   axiosInstance.interceptors.request.use(
     (config) => {
-      const fullUrl = (config.baseURL || '') + (config.url || '');
-      console.log('Making request to:', fullUrl);
-      
       // Add cache-busting headers for production
       if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
         if (config.headers) {
@@ -176,27 +161,6 @@ export async function recordMatch(player1_id: string, player2_id: string, team1:
   try {
     const axiosInstance = createAuthenticatedRequest();
     
-    // Log the full URL being used
-    const fullUrl = `${axiosInstance.defaults.baseURL}/matches/`;
-    console.log('Making POST request to:', fullUrl);
-    
-    // Test the connection first
-    if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-      console.log('Testing HTTPS connection to ngrok...');
-      try {
-        const testResponse = await fetch(`${axiosInstance.defaults.baseURL}/players/`, {
-          method: 'GET',
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
-        });
-        console.log('HTTPS test successful:', testResponse.status);
-      } catch (testError) {
-        console.error('HTTPS test failed:', testError);
-      }
-    }
-    
     const response = await axiosInstance.post('/matches/', {
       player1_id,
       player2_id,
@@ -235,10 +199,8 @@ export async function recordMatch(player1_id: string, player2_id: string, team1:
 
 export async function getTable(): Promise<PlayerStats[]> {
   try {
-    console.log('Attempting to fetch from:', `${API_BASE_URL}/stats/`);
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.get('/stats/');
-    console.log('Successfully fetched stats:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching table:', error);
@@ -357,7 +319,6 @@ export async function getTournaments(): Promise<Tournament[]> {
   try {
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.get('/tournaments/');
-    console.log('Tournaments:', response.data);
     return response.data;
   } catch (error) {
     console.error('Error fetching tournaments:', error);
@@ -473,9 +434,6 @@ export async function login(identifier: string, password: string): Promise<User 
   try {
     // The API expects username field, so we'll use the identifier as username
     const payload = { username: identifier, password };
-    
-    console.log('Attempting login to:', `${API_BASE_URL}/auth/login-json`);
-    console.log('Login payload:', { username: identifier, password: '***' });
     
     const response = await axios.post(`${API_BASE_URL}/auth/login-json`, payload);
     
@@ -595,12 +553,9 @@ export async function getCurrentUserStats(player_id: string): Promise<UserDetail
   try {
     const axiosInstance = createAuthenticatedRequest();
     if(player_id == ''){
-      console.log('Player ID is empty');
       return null;
     }
     const response = await axiosInstance.get(`/players/${player_id}/stats/`);
-    
-    console.log('User stats from API:', response.data);
     
     // The API returns a single UserDetailedStats object, not an array
     return response.data || null;
