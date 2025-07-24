@@ -404,6 +404,20 @@ export async function deleteTournament(tournament_id: string): Promise<void> {
     await axiosInstance.delete(`/tournaments/${tournament_id}`);
   } catch (error) {
     console.error('Error deleting tournament:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 403) {
+        throw new Error('You do not have permission to delete this tournament. Only the tournament owner can delete it.');
+      } else if (axiosError.response?.status === 404) {
+        throw new Error('Tournament not found.');
+      } else if (axiosError.response?.status === 401) {
+        throw new Error('Authentication required. Please log in again.');
+      } else {
+        const errorData = axiosError.response?.data as any;
+        throw new Error(`Failed to delete tournament: ${errorData?.detail || axiosError.message}`);
+      }
+    }
+    throw new Error('Failed to delete tournament. Please try again.');
   }
 }
 
@@ -668,6 +682,7 @@ export interface Tournament {
   completed: boolean;
   start_date: string;
   end_date: string;
+  owner_id?: string;
 }
 
 export interface MatchResult  {

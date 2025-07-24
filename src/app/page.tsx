@@ -21,6 +21,7 @@ export default function Home() {
   const [table, setTable] = useState<PlayerStats[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
+  const [userCreatedTournaments, setUserCreatedTournaments] = useState<Tournament[]>([]);
   const [matches, setMatches] = useState<MatchResult[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -54,6 +55,12 @@ export default function Home() {
     const initializeData = async () => {
       const tournaments = await getTournaments();
       setTournaments(tournaments);
+      
+      // For now, we'll assume all tournaments are user-created
+      // In a real implementation, the backend would provide a way to distinguish
+      // between tournaments created by the current user vs all tournaments
+      setUserCreatedTournaments(tournaments);
+      
       if (tournaments.length > 0) {
         const firstTournamentId = tournaments[0].id;
         setSelectedTournament(firstTournamentId);
@@ -132,6 +139,21 @@ export default function Home() {
         setMatches(matches);
       } catch (error) {
         console.error('Error fetching match history:', error);
+      }
+    }
+  };
+
+  const refreshMatches = async () => {
+    if (selectedTournament) {
+      try {
+        const matches = await getTournamentMatches(selectedTournament);
+        setMatches(matches);
+        
+        // Also refresh standings since match results affect the table
+        const standings = await getTournamentStandings(selectedTournament);
+        setTable(standings);
+      } catch (error) {
+        console.error('Error refreshing matches:', error);
       }
     }
   };
@@ -258,7 +280,10 @@ export default function Home() {
 
         {activeTab === 'history' && (
           <MatchHistory 
-            matches={matches} 
+            matches={matches}
+            tournamentId={selectedTournament}
+            isTournamentCreator={userCreatedTournaments.some(t => t.id === selectedTournament)}
+            onMatchUpdated={refreshMatches}
           />
         )}
 

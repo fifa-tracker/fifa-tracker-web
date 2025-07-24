@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getTournaments, getTournament, updateTournament, deleteTournament, getTournamentPlayers, Player, Tournament } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 
 interface TournamentWithPlayers extends Tournament {
   players?: Player[];
@@ -12,6 +13,7 @@ interface Toast {
 }
 
 export default function UserTournaments() {
+  const { user } = useAuth();
   const [tournaments, setTournaments] = useState<TournamentWithPlayers[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingTournament, setEditingTournament] = useState<string | null>(null);
@@ -131,7 +133,8 @@ export default function UserTournaments() {
       showToast("Tournament deleted successfully!", 'success');
     } catch (error) {
       console.error("Error deleting tournament:", error);
-      showToast("Failed to delete tournament. Please try again.", 'error');
+      const errorMessage = error instanceof Error ? error.message : "Failed to delete tournament. Please try again.";
+      showToast(errorMessage, 'error');
     }
   };
 
@@ -151,12 +154,12 @@ export default function UserTournaments() {
   return (
     <div className="space-y-6">
       <div className="bg-[#1a1f2e] rounded-lg p-6">
-        <h2 className="text-2xl font-bold mb-2">My Tournaments</h2>
-        <p className="text-gray-400 mb-6">Manage your created tournaments</p>
+        <h2 className="text-2xl font-bold mb-2">Tournaments</h2>
+        <p className="text-gray-400 mb-6">View and manage tournaments. You can only edit or delete tournaments you own.</p>
 
         {tournaments.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-400 mb-4">You haven't created any tournaments yet.</p>
+            <p className="text-gray-400 mb-4">No tournaments found.</p>
             <p className="text-sm text-gray-500">Create your first tournament in the Tournament Management section.</p>
           </div>
         ) : (
@@ -236,22 +239,33 @@ export default function UserTournaments() {
                   <div>
                     <div className="flex justify-between items-start mb-4">
                       <div>
-                        <h3 className="text-xl font-semibold text-white">{tournament.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-xl font-semibold text-white">{tournament.name}</h3>
+                          {user && tournament.owner_id === user.id && (
+                            <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                              Owner
+                            </span>
+                          )}
+                        </div>
                         <p className="text-gray-400 mt-1">{tournament.description}</p>
                       </div>
                       <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleEditClick(tournament)}
-                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteTournament(tournament.id)}
-                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors"
-                        >
-                          Delete
-                        </button>
+                        {user && tournament.owner_id === user.id && (
+                          <>
+                            <button
+                              onClick={() => handleEditClick(tournament)}
+                              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteTournament(tournament.id)}
+                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                            >
+                              Delete
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
 

@@ -1,8 +1,10 @@
 import { createTournament, getPlayers, Player } from "@/lib/api";
 import { useState, useEffect, useRef } from "react";
+import { useAuth } from "@/lib/auth";
 import UserTournaments from "./UserTournaments";
 
 export default function Settings() {
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [player_ids, setPlayer_ids] = useState<string[]>([]);
@@ -25,6 +27,17 @@ export default function Settings() {
     fetchPlayers();
   }, []);
 
+  // Automatically add current user to selected players when component mounts
+  useEffect(() => {
+    if (user && allPlayers.length > 0) {
+      const currentUserPlayer = allPlayers.find(player => player.id === user.id);
+      if (currentUserPlayer && !selectedPlayers.some(p => p.id === user.id)) {
+        setSelectedPlayers(prev => [...prev, currentUserPlayer]);
+        setPlayer_ids(prev => [...prev, user.id]);
+      }
+    }
+  }, [user, allPlayers, selectedPlayers]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -40,10 +53,15 @@ export default function Settings() {
 
   const filteredPlayers = allPlayers.filter(player =>
     player.name && player.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-    !selectedPlayers.some(selected => selected.id === player.id)
+    !selectedPlayers.some(selected => selected.id === player.id) &&
+    !(user && player.id === user.id) // Exclude current user from dropdown
   );
 
   const handlePlayerSelect = (player: Player) => {
+    // Prevent adding the current user twice
+    if (user && player.id === user.id) {
+      return;
+    }
     setSelectedPlayers(prev => [...prev, player]);
     setPlayer_ids(prev => [...prev, player.id]);
     setSearchTerm("");
@@ -51,13 +69,23 @@ export default function Settings() {
   };
 
   const handlePlayerRemove = (playerId: string) => {
+    // Prevent removing the current user from the tournament
+    if (user && playerId === user.id) {
+      return;
+    }
     setSelectedPlayers(prev => prev.filter(p => p.id !== playerId));
     setPlayer_ids(prev => prev.filter(id => id !== playerId));
   };
 
   const handleCreateTournament = async () => {
     try {
-      const tournament = await createTournament(name, description, player_ids);
+      // Ensure current user is included in player_ids
+      let finalPlayerIds = [...player_ids];
+      if (user && !finalPlayerIds.includes(user.id)) {
+        finalPlayerIds.push(user.id);
+      }
+
+      const tournament = await createTournament(name, description, finalPlayerIds);
       if (tournament) {
         // Reset form
         setName("");
@@ -144,6 +172,7 @@ export default function Settings() {
 
               <div className="relative" ref={dropdownRef}>
                 <label className="block text-sm font-medium mb-2">Select Players</label>
+                <p className="text-xs text-gray-400 mb-2">You will automatically be added as a participant in this tournament.</p>
                 <div className="relative">
                   <input 
                     type="text" 
@@ -182,20 +211,31 @@ export default function Settings() {
                   <div className="mt-3">
                     <label className="block text-sm font-medium mb-2">Selected Players</label>
                     <div className="flex flex-wrap gap-2">
-                      {selectedPlayers.map((player) => (
-                        <span 
-                          key={player.id} 
-                          className="bg-[#2d3748] text-white px-3 py-1 rounded-full text-sm flex items-center gap-2"
-                        >
-                          {player.name}
-                          <button
-                            onClick={() => handlePlayerRemove(player.id)}
-                            className="text-red-400 hover:text-red-300 text-xs"
+                      {selectedPlayers.map((player) => {
+                        const isCurrentUser = user && player.id === user.id;
+                        return (
+                          <span 
+                            key={player.id} 
+                            className={`px-3 py-1 rounded-full text-sm flex items-center gap-2 ${
+                              isCurrentUser 
+                                ? 'bg-green-600 text-white' 
+                                : 'bg-[#2d3748] text-white'
+                            }`}
                           >
-                            ×
-                          </button>
-                        </span>
-                      ))}
+                            {player.name}
+                            {isCurrentUser ? (
+                              <span className="text-green-300 text-xs">(You)</span>
+                            ) : (
+                              <button
+                                onClick={() => handlePlayerRemove(player.id)}
+                                className="text-red-400 hover:text-red-300 text-xs"
+                              >
+                                ×
+                              </button>
+                            )}
+                          </span>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
