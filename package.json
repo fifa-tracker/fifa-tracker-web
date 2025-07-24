@@ -6,9 +6,17 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "lint:check": "next lint --max-warnings 0",
+    "type-check": "tsc --noEmit",
+    "type-check:watch": "tsc --noEmit --watch",
+    "code-quality": "npm run lint:check && npm run type-check",
+    "pre-commit": "npm run lint:fix && npm run type-check",
+    "prepare": "husky"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.5.0",
     "axios": "^1.10.0",
     "next": "15.4.1",
     "react": "19.1.0",
@@ -22,6 +30,9 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.4.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "prettier": "^3.6.2",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
