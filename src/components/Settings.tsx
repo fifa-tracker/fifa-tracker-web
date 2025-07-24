@@ -80,7 +80,7 @@ export default function Settings() {
   const handleCreateTournament = async () => {
     try {
       // Ensure current user is included in player_ids
-      let finalPlayerIds = [...player_ids];
+      const finalPlayerIds = [...player_ids];
       if (user && !finalPlayerIds.includes(user.id)) {
         finalPlayerIds.push(user.id);
       }

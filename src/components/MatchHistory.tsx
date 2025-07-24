@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { MatchResult, updateMatch, deleteMatch } from "@/lib/api";
-import { useAuth } from "@/lib/auth";
 
 interface MatchHistoryProps {
   matches: MatchResult[];
@@ -59,8 +58,7 @@ function groupMatchesByDate(matches: MatchResult[]): { [key: string]: MatchResul
   return grouped;
 }
 
-export default function MatchHistory({ matches, tournamentId, isTournamentCreator = false, onMatchUpdated }: MatchHistoryProps) {
-  const { user } = useAuth();
+export default function MatchHistory({ matches, isTournamentCreator = false, onMatchUpdated }: MatchHistoryProps) {
   const [editingMatch, setEditingMatch] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
     player1_goals: 0,

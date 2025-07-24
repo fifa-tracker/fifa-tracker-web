@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getTournaments, getTournament, updateTournament, deleteTournament, getTournamentPlayers, Player, Tournament } from "@/lib/api";
+import { getTournaments, updateTournament, deleteTournament, getTournamentPlayers, Player, Tournament } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 
 interface TournamentWithPlayers extends Tournament {

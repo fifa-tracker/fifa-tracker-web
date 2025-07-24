@@ -370,7 +370,7 @@ export async function getTournament(tournament_id: string): Promise<Tournament |
 export async function updateTournament(tournament_id: string, name?: string, description?: string, player_ids?: string[], completed?: boolean, start_date?: string, end_date?: string): Promise<Tournament | null> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    const payload: any = {};
+    const payload: Record<string, unknown> = {};
     if (name !== undefined) payload.name = name;
     if (description !== undefined) payload.description = description;
     if (player_ids !== undefined) payload.player_ids = player_ids;
@@ -413,7 +413,7 @@ export async function deleteTournament(tournament_id: string): Promise<void> {
       } else if (axiosError.response?.status === 401) {
         throw new Error('Authentication required. Please log in again.');
       } else {
-        const errorData = axiosError.response?.data as any;
+        const errorData = axiosError.response?.data as Record<string, unknown>;
         throw new Error(`Failed to delete tournament: ${errorData?.detail || axiosError.message}`);
       }
     }
