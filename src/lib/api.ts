@@ -840,7 +840,7 @@ export async function getCurrentUserStats(
     // Add cache-busting parameter to avoid browser caching issues
     const timestamp = Date.now();
     const response = await axiosInstance.get(
-      `/players/${player_id}/stats/?_t=${timestamp}`
+      `/players/${player_id}/stats?_t=${timestamp}`
     );
 
     // The API returns a single UserDetailedStats object, not an array
