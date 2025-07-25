@@ -124,6 +124,16 @@ const createAuthenticatedRequest = () => {
     }
   }
 
+  // Final safety check - if we're in production and still have HTTP, force HTTPS
+  if (
+    typeof window !== 'undefined' &&
+    window.location.hostname !== 'localhost' &&
+    finalBaseUrl.startsWith('http://')
+  ) {
+    console.error('CRITICAL: Forcing HTTPS conversion for production!');
+    finalBaseUrl = finalBaseUrl.replace('http://', 'https://');
+  }
+
   console.log('Creating authenticated request:', {
     hasToken: !!token,
     tokenLength: token?.length,
@@ -155,6 +165,16 @@ const createAuthenticatedRequest = () => {
   // Add request interceptor to log the actual request URL and add cache-busting
   axiosInstance.interceptors.request.use(
     config => {
+      // Log the actual request URL being made
+      const fullUrl = (config.baseURL || '') + (config.url || '');
+      console.log('Making request to:', {
+        method: config.method,
+        url: config.url,
+        baseURL: config.baseURL,
+        fullUrl: fullUrl,
+        headers: config.headers,
+      });
+
       // Add cache-busting headers for production
       if (
         typeof window !== 'undefined' &&
@@ -409,11 +429,30 @@ export async function getPlayerStats(
   player_id: string
 ): Promise<DetailedPlayerStats | null> {
   try {
+    console.log('getPlayerStats called with player_id:', player_id);
     const axiosInstance = createAuthenticatedRequest();
+    console.log(
+      'getPlayerStats axios instance baseURL:',
+      axiosInstance.defaults.baseURL
+    );
     const response = await axiosInstance.get(`/players/${player_id}/stats/`);
     return response.data;
   } catch (error) {
     console.error('Error fetching player stats:', error);
+    if (axios.isAxiosError(error)) {
+      console.error('getPlayerStats Axios error details:', {
+        message: error.message,
+        code: error.code,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          baseURL: error.config?.baseURL,
+          headers: error.config?.headers,
+        },
+      });
+    }
     return null;
   }
 }
@@ -798,7 +837,11 @@ export async function getCurrentUserStats(
     console.log('getCurrentUserStats called with player_id:', player_id);
     console.log('Axios instance baseURL:', axiosInstance.defaults.baseURL);
 
-    const response = await axiosInstance.get(`/players/${player_id}/stats/`);
+    // Add cache-busting parameter to avoid browser caching issues
+    const timestamp = Date.now();
+    const response = await axiosInstance.get(
+      `/players/${player_id}/stats/?_t=${timestamp}`
+    );
 
     // The API returns a single UserDetailedStats object, not an array
     return response.data || null;
