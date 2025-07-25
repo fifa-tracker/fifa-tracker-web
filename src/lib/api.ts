@@ -10,12 +10,25 @@ const ENVIRONMENT = process.env.NEXT_PUBLIC_ENVIRONMENT || process.env.NODE_ENV;
 const getApiBaseUrl = () => {
   // Check if we're in a browser environment
   if (typeof window !== 'undefined') {
+    console.log('getApiBaseUrl() called with:', {
+      ENVIRONMENT,
+      API_BASE_URL_NGROK,
+      API_BASE_URL_LOCAL,
+      hostname: window.location.hostname,
+      protocol: window.location.protocol,
+    });
+
     // Check environment variable first
     if (ENVIRONMENT === 'production' && API_BASE_URL_NGROK) {
       // Production environment - use ngrok URL
       let ngrokUrl = API_BASE_URL_NGROK.replace('http://', 'https://');
       ngrokUrl = ngrokUrl.replace(/\/$/, ''); // Remove trailing slash if present
-      return `${ngrokUrl}/api/v1`;
+      const result = `${ngrokUrl}/api/v1`;
+      console.log('Production with ngrok URL:', {
+        original: API_BASE_URL_NGROK,
+        result,
+      });
+      return result;
     }
 
     // Check if we're in development (localhost)
@@ -23,7 +36,9 @@ const getApiBaseUrl = () => {
       window.location.hostname === 'localhost' ||
       window.location.hostname === '127.0.0.1'
     ) {
-      return `${API_BASE_URL_LOCAL}/api/v1`;
+      const result = `${API_BASE_URL_LOCAL}/api/v1`;
+      console.log('Development (localhost):', result);
+      return result;
     }
 
     // Production - ensure HTTPS for ngrok URLs to avoid mixed content issues
@@ -31,15 +46,24 @@ const getApiBaseUrl = () => {
       // Force HTTPS for ngrok URLs and ensure no trailing slash
       let ngrokUrl = API_BASE_URL_NGROK.replace('http://', 'https://');
       ngrokUrl = ngrokUrl.replace(/\/$/, ''); // Remove trailing slash if present
-      return `${ngrokUrl}/api/v1`;
+      const result = `${ngrokUrl}/api/v1`;
+      console.log('Production with ngrok URL (fallback):', {
+        original: API_BASE_URL_NGROK,
+        result,
+      });
+      return result;
     }
 
     // Fallback to localhost if no ngrok URL is configured
     console.warn('No ngrok URL configured, falling back to localhost');
-    return `${API_BASE_URL_LOCAL}/api/v1`;
+    const result = `${API_BASE_URL_LOCAL}/api/v1`;
+    console.log('Fallback to localhost:', result);
+    return result;
   }
   // Server-side rendering - default to localhost
-  return `${API_BASE_URL_LOCAL}/api/v1`;
+  const result = `${API_BASE_URL_LOCAL}/api/v1`;
+  console.log('Server-side rendering:', result);
+  return result;
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -79,16 +103,34 @@ const createAuthenticatedRequest = () => {
   // Get fresh API base URL to avoid caching issues
   const freshApiBaseUrl = getApiBaseUrl();
 
-  // Force HTTPS for production environments
+  // Force HTTPS for production environments - more aggressive enforcement
   let finalBaseUrl = freshApiBaseUrl;
-  if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-    finalBaseUrl = freshApiBaseUrl.replace('http://', 'https://');
+  if (typeof window !== 'undefined') {
+    // Always force HTTPS if we're on HTTPS or in production
+    if (
+      window.location.protocol === 'https:' ||
+      window.location.hostname !== 'localhost'
+    ) {
+      finalBaseUrl = freshApiBaseUrl.replace('http://', 'https://');
+
+      // Double-check and log if we're still using HTTP
+      if (finalBaseUrl.startsWith('http://')) {
+        console.error('WARNING: Still using HTTP after HTTPS enforcement!');
+        console.error('Original URL:', freshApiBaseUrl);
+        console.error('Final URL:', finalBaseUrl);
+        console.error('Environment:', ENVIRONMENT);
+        console.error('Ngrok URL:', API_BASE_URL_NGROK);
+      }
+    }
   }
 
   console.log('Creating authenticated request:', {
     hasToken: !!token,
     tokenLength: token?.length,
     baseURL: finalBaseUrl,
+    originalBaseUrl: freshApiBaseUrl,
+    protocol:
+      typeof window !== 'undefined' ? window.location.protocol : 'server',
   });
 
   const config: {
@@ -751,12 +793,34 @@ export async function getCurrentUserStats(
     if (player_id == '') {
       return null;
     }
+
+    // Additional debugging for this specific function
+    console.log('getCurrentUserStats called with player_id:', player_id);
+    console.log('Axios instance baseURL:', axiosInstance.defaults.baseURL);
+
     const response = await axiosInstance.get(`/players/${player_id}/stats/`);
 
     // The API returns a single UserDetailedStats object, not an array
     return response.data || null;
   } catch (error) {
     console.error('Error fetching current user stats:', error);
+
+    // Additional error logging for debugging
+    if (axios.isAxiosError(error)) {
+      console.error('getCurrentUserStats Axios error details:', {
+        message: error.message,
+        code: error.code,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          baseURL: error.config?.baseURL,
+          headers: error.config?.headers,
+        },
+      });
+    }
+
     return null;
   }
 }
