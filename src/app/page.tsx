@@ -61,15 +61,6 @@ export default function Home() {
   }, [isMenuOpen]);
 
   useEffect(() => {
-    const fetchTournamentStandings = async (tournamentId: string) => {
-      try {
-        const standings = await getTournamentStandings(tournamentId);
-        setTable(standings);
-      } catch (error) {
-        console.error('Error fetching tournament standings:', error);
-      }
-    };
-
     const initializeData = async () => {
       const tournaments = await getTournaments();
       setTournaments(tournaments);
@@ -83,16 +74,6 @@ export default function Home() {
         const firstTournamentId = tournaments[0].id;
         setSelectedTournament(firstTournamentId);
         setTournament(tournaments[0]);
-
-        // Now fetch players and standings for the selected tournament
-        try {
-          const players = await getTournamentPlayers(firstTournamentId);
-          setPlayers(players);
-        } catch (error) {
-          console.error('Error fetching tournament players:', error);
-        }
-
-        await fetchTournamentStandings(firstTournamentId);
       }
     };
 
