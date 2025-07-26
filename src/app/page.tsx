@@ -20,6 +20,7 @@ import {
   getTournaments,
   getTournamentStandings,
   MatchResult,
+  PaginatedResponse,
   Player,
   PlayerStats,
   Tournament,
@@ -41,6 +42,10 @@ export default function Home() {
     Tournament[]
   >([]);
   const [matches, setMatches] = useState<MatchResult[]>([]);
+  const [matchesPagination, setMatchesPagination] =
+    useState<PaginatedResponse<MatchResult> | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(20); // Show 20 matches per page
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -126,8 +131,13 @@ export default function Home() {
 
     if (tabId === 'history' && selectedTournament) {
       try {
-        const matches = await getTournamentMatches(selectedTournament);
-        setMatches(matches);
+        const paginatedMatches = await getTournamentMatches(
+          selectedTournament,
+          currentPage,
+          pageSize
+        );
+        setMatchesPagination(paginatedMatches);
+        setMatches(paginatedMatches.items);
       } catch (error) {
         console.error('Error fetching match history:', error);
       }
@@ -137,14 +147,36 @@ export default function Home() {
   const refreshMatches = async () => {
     if (selectedTournament) {
       try {
-        const matches = await getTournamentMatches(selectedTournament);
-        setMatches(matches);
+        const paginatedMatches = await getTournamentMatches(
+          selectedTournament,
+          currentPage,
+          pageSize
+        );
+        setMatchesPagination(paginatedMatches);
+        setMatches(paginatedMatches.items);
 
         // Also refresh standings since match results affect the table
         const standings = await getTournamentStandings(selectedTournament);
         setTable(standings);
       } catch (error) {
         console.error('Error refreshing matches:', error);
+      }
+    }
+  };
+
+  const handlePageChange = async (newPage: number) => {
+    if (selectedTournament) {
+      setCurrentPage(newPage);
+      try {
+        const paginatedMatches = await getTournamentMatches(
+          selectedTournament,
+          newPage,
+          pageSize
+        );
+        setMatchesPagination(paginatedMatches);
+        setMatches(paginatedMatches.items);
+      } catch (error) {
+        console.error('Error fetching matches for page:', error);
       }
     }
   };
@@ -285,6 +317,9 @@ export default function Home() {
                 t => t.id === selectedTournament
               )}
               onMatchUpdated={refreshMatches}
+              onPageChange={handlePageChange}
+              currentPage={currentPage}
+              totalPages={matchesPagination?.total_pages || 1}
             />
           )}
 

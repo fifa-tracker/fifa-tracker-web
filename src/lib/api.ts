@@ -625,25 +625,49 @@ export async function getTournamentPlayers(
 }
 
 export async function getTournamentMatches(
-  tournament_id: string
-): Promise<MatchResult[]> {
+  tournament_id: string,
+  page: number = 1,
+  page_size: number = 50
+): Promise<PaginatedResponse<MatchResult>> {
   try {
     // Guard against empty tournament ID
     if (!tournament_id || tournament_id.trim() === '') {
       console.warn(
         'Attempted to fetch tournament matches with empty tournament ID'
       );
-      return [];
+      return {
+        items: [],
+        total: 0,
+        page: 1,
+        page_size: page_size,
+        total_pages: 0,
+        has_next: false,
+        has_previous: false,
+      };
     }
 
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.get(
-      `/tournaments/${tournament_id}/matches`
+      `/tournaments/${tournament_id}/matches`,
+      {
+        params: {
+          page,
+          page_size,
+        },
+      }
     );
     return response.data;
   } catch (error) {
     console.error('Error fetching tournament matches:', error);
-    return [];
+    return {
+      items: [],
+      total: 0,
+      page: 1,
+      page_size: page_size,
+      total_pages: 0,
+      has_next: false,
+      has_previous: false,
+    };
   }
 }
 
@@ -877,6 +901,17 @@ export async function getAllUsersStats(): Promise<UserDetailedStats[]> {
     console.error('Error fetching all users stats:', error);
     return [];
   }
+}
+
+// Pagination interfaces
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+  has_next: boolean;
+  has_previous: boolean;
 }
 
 export interface Player {
