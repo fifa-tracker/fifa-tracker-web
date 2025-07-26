@@ -419,7 +419,7 @@ export async function updateMatch(
 export async function deleteMatch(match_id: string): Promise<void> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    await axiosInstance.delete(`/matches/${match_id}/`);
+    await axiosInstance.delete(`/matches/${match_id}`);
   } catch (error) {
     console.error('Error deleting match:', error);
   }

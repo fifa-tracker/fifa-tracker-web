@@ -27,7 +27,7 @@ export default function LogMatch({
     player1_goals: 0,
     player2_goals: 0,
     tournament_id: selectedTournament?.id || '',
-    half_length: 4,
+    half_length: 3,
   });
 
   const teams = FIFA23AllTeams.map(team => team.name);
@@ -60,6 +60,16 @@ export default function LogMatch({
       .catch(error => {
         console.error('Error logging match:', error);
       });
+    setFormData({
+      player1_id: '',
+      player2_id: '',
+      team1: '',
+      team2: '',
+      player1_goals: 0,
+      player2_goals: 0,
+      tournament_id: selectedTournament?.id || '',
+      half_length: 3,
+    });
   };
 
   return (

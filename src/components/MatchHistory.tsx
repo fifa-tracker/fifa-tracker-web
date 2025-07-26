@@ -184,31 +184,71 @@ export default function MatchHistory({
                             {match.player1_name}
                           </div>
                           <div className="flex items-center space-x-2 mx-4">
-                            <input
-                              type="number"
-                              min="0"
-                              value={editForm.player1_goals}
-                              onChange={e =>
+                            <button
+                              type="button"
+                              onClick={() =>
                                 setEditForm(prev => ({
                                   ...prev,
-                                  player1_goals: parseInt(e.target.value) || 0,
+                                  player1_goals: Math.max(
+                                    0,
+                                    prev.player1_goals - 1
+                                  ),
                                 }))
                               }
-                              className="w-16 bg-[#1a1f2e] border border-gray-600 rounded-lg px-2 py-1 text-white text-center text-sm"
-                            />
+                              className="w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold hover:bg-[#374151] transition-colors"
+                            >
+                              -
+                            </button>
+                            <div className="flex-1 bg-[#1a1f2e] border border-gray-600 rounded-lg px-4 py-3 text-center">
+                              <span className="text-white text-2xl font-bold">
+                                {editForm.player1_goals}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setEditForm(prev => ({
+                                  ...prev,
+                                  player1_goals: prev.player1_goals + 1,
+                                }))
+                              }
+                              className="w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold hover:bg-[#374151] transition-colors"
+                            >
+                              +
+                            </button>
                             <span className="text-white font-medium">-</span>
-                            <input
-                              type="number"
-                              min="0"
-                              value={editForm.player2_goals}
-                              onChange={e =>
+                            <button
+                              type="button"
+                              onClick={() =>
                                 setEditForm(prev => ({
                                   ...prev,
-                                  player2_goals: parseInt(e.target.value) || 0,
+                                  player2_goals: Math.max(
+                                    0,
+                                    prev.player2_goals - 1
+                                  ),
                                 }))
                               }
-                              className="w-16 bg-[#1a1f2e] border border-gray-600 rounded-lg px-2 py-1 text-white text-center text-sm"
-                            />
+                              className="w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold hover:bg-[#374151] transition-colors"
+                            >
+                              -
+                            </button>
+                            <div className="flex-1 bg-[#1a1f2e] border border-gray-600 rounded-lg px-4 py-3 text-center">
+                              <span className="text-white text-2xl font-bold">
+                                {editForm.player2_goals}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setEditForm(prev => ({
+                                  ...prev,
+                                  player2_goals: prev.player2_goals + 1,
+                                }))
+                              }
+                              className="w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold hover:bg-[#374151] transition-colors"
+                            >
+                              +
+                            </button>
                           </div>
                           <div className="font-medium text-sm sm:text-base text-right flex-1">
                             {match.player2_name}
