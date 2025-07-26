@@ -99,14 +99,6 @@ export default function Home() {
         } catch (error) {
           console.error('Error fetching tournament standings:', error);
         }
-
-        try {
-          // Fetch match history for the selected tournament
-          const matches = await getTournamentMatches(selectedTournament);
-          setMatches(matches);
-        } catch (error) {
-          console.error('Error fetching match history:', error);
-        }
       };
 
       fetchTournamentData();
