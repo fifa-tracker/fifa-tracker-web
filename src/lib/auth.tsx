@@ -32,8 +32,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // Only check auth after component is mounted to prevent hydration mismatch
+    if (!mounted) return;
+
     // Check for existing session on app load
     const checkAuth = async () => {
       const savedUser = localStorage.getItem('fifa-tracker-user');
@@ -65,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     checkAuth();
-  }, []);
+  }, [mounted]);
 
   const signIn = async (
     identifier: string,
@@ -197,7 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthContextType = {
     user,
     isAuthenticated: !!user,
-    isLoading,
+    isLoading: !mounted || isLoading,
     accessToken,
     signIn,
     signUp,

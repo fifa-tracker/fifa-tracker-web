@@ -717,10 +717,7 @@ export async function login(
     // The API expects username field, so we'll use the identifier as username
     const payload = { username: identifier, password };
 
-    const response = await axios.post(
-      `${API_BASE_URL}/auth/login-json`,
-      payload
-    );
+    const response = await axios.post(`${API_BASE_URL}/auth/login`, payload);
 
     // Store the access token if it's included in the response
     if (response.data.access_token) {
