@@ -1,25 +1,27 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { TrophyIcon, UserIcon, ArrowLeftIcon } from '@/components/Icons';
+import { ArrowLeftIcon, TrophyIcon, UserIcon } from '@/components/Icons';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { checkUsernameAvailability, updateUserProfile } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import { updateUserProfile, checkUsernameAvailability } from '@/lib/api';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export default function EditProfilePage() {
   const { user, updateUser } = useAuth();
   const router = useRouter();
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const [formData, setFormData] = useState({
-    name: '',
+    first_name: '',
     email: '',
-    username: ''
+    username: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
+  const [usernameStatus, setUsernameStatus] = useState<
+    'idle' | 'checking' | 'available' | 'taken'
+  >('idle');
   const [usernameError, setUsernameError] = useState('');
 
   // Debounced username availability check
@@ -29,14 +31,14 @@ export default function EditProfilePage() {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
-      
+
       // Don't check if username is the same as current user's username
       if (username === currentUsername) {
         setUsernameStatus('idle');
         setUsernameError('');
         return;
       }
-      
+
       if (!username || username.length < 3) {
         setUsernameStatus('idle');
         setUsernameError('');
@@ -63,9 +65,9 @@ export default function EditProfilePage() {
   useEffect(() => {
     if (user) {
       setFormData({
-        name: user.name || '',
+        first_name: user.first_name || '',
         email: user.email || '',
-        username: user.username || ''
+        username: user.username || '',
       });
     }
   }, [user]);
@@ -79,7 +81,7 @@ export default function EditProfilePage() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     // Clear any previous errors when user starts typing
     if (error) setError('');
@@ -93,7 +95,12 @@ export default function EditProfilePage() {
     setSuccess('');
 
     try {
-      const updatedUser = await updateUserProfile(user?.id || '', formData.name, formData.email, formData.username);
+      const updatedUser = await updateUserProfile(
+        user?.id || '',
+        formData.first_name,
+        formData.email,
+        formData.username
+      );
       if (updatedUser) {
         updateUser(updatedUser);
         setSuccess('Profile updated successfully!');
@@ -153,7 +160,7 @@ export default function EditProfilePage() {
                 {success}
               </div>
             )}
-            
+
             {error && (
               <div className="mb-4 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400">
                 {error}
@@ -163,23 +170,29 @@ export default function EditProfilePage() {
             {/* Edit Profile Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-300 mb-2">
-                  Full Name
+                <label
+                  htmlFor="first_name"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
+                  First Name
                 </label>
                 <input
                   type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
+                  id="first_name"
+                  name="first_name"
+                  value={formData.first_name}
                   onChange={handleInputChange}
                   required
                   className="w-full px-4 py-3 bg-[#2d3748] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter your full name"
+                  placeholder="Enter your first name"
                 />
               </div>
 
               <div>
-                <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
+                <label
+                  htmlFor="username"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
                   Username
                 </label>
                 <div className="relative">
@@ -190,11 +203,11 @@ export default function EditProfilePage() {
                     value={formData.username}
                     onChange={handleInputChange}
                     className={`w-full px-4 py-3 bg-[#2d3748] border rounded-lg text-white placeholder-gray-400 focus:outline-none transition-colors ${
-                      usernameStatus === 'available' 
-                        ? 'border-green-500 focus:ring-2 focus:ring-green-500 focus:border-transparent' 
-                        : usernameStatus === 'taken' 
-                        ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-transparent' 
-                        : 'border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                      usernameStatus === 'available'
+                        ? 'border-green-500 focus:ring-2 focus:ring-green-500 focus:border-transparent'
+                        : usernameStatus === 'taken'
+                          ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-transparent'
+                          : 'border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                     }`}
                     placeholder="Enter your username"
                   />
@@ -206,30 +219,57 @@ export default function EditProfilePage() {
                   )}
                   {usernameStatus === 'available' && (
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <svg
+                        className="w-5 h-5 text-green-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
                       </svg>
                     </div>
                   )}
                   {usernameStatus === 'taken' && (
                     <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <svg
+                        className="w-5 h-5 text-red-500"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </div>
                   )}
                 </div>
-                <p className="text-xs text-gray-400 mt-1">You can use your username or email to sign in later</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  You can use your username or email to sign in later
+                </p>
                 {usernameError && (
                   <p className="text-xs text-red-500 mt-1">{usernameError}</p>
                 )}
                 {usernameStatus === 'available' && (
-                  <p className="text-xs text-green-500 mt-1">Username is available!</p>
+                  <p className="text-xs text-green-500 mt-1">
+                    Username is available!
+                  </p>
                 )}
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
                   Email Address
                 </label>
                 <input
@@ -248,7 +288,12 @@ export default function EditProfilePage() {
               <div className="flex flex-col sm:flex-row gap-3 pt-4">
                 <button
                   type="submit"
-                  disabled={isLoading || usernameStatus === 'taken' || (formData.username.length > 0 && usernameStatus === 'checking')}
+                  disabled={
+                    isLoading ||
+                    usernameStatus === 'taken' ||
+                    (formData.username.length > 0 &&
+                      usernameStatus === 'checking')
+                  }
                   className="flex-1 px-6 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-500/50 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium"
                 >
                   {isLoading ? 'Updating...' : 'Save Changes'}
@@ -268,4 +313,4 @@ export default function EditProfilePage() {
       </div>
     </ProtectedRoute>
   );
-} 
+}

@@ -221,14 +221,11 @@ const createAuthenticatedRequest = () => {
   return axiosInstance;
 };
 
-export async function getPlayers(): Promise<Player[]> {
+export async function getPlayers(): Promise<User[]> {
   try {
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.get('/players/');
-    return response.data.map((player: Player) => ({
-      name: player.name,
-      id: player.id,
-    })); // Updated return statement
+    return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
@@ -603,7 +600,7 @@ export async function removePlayerFromTournament(
 
 export async function getTournamentPlayers(
   tournament_id: string
-): Promise<Player[]> {
+): Promise<User[]> {
   try {
     // Guard against empty tournament ID
     if (!tournament_id || tournament_id.trim() === '') {
@@ -695,13 +692,14 @@ export async function getTournamentStandings(
 }
 
 export async function register(
-  name: string,
+  first_name: string,
+  last_name: string,
   email: string,
   password: string,
   username: string
 ): Promise<User | null> {
   try {
-    const payload = { name, email, password, username };
+    const payload = { first_name, last_name, email, password, username };
 
     const response = await axios.post(`${API_BASE_URL}/auth/register`, payload);
     return response.data;
@@ -810,7 +808,7 @@ export async function checkUsernameAvailability(
 
 export async function updateUserProfile(
   id: string,
-  name?: string,
+  first_name?: string,
   email?: string,
   username?: string
 ): Promise<User | null> {
@@ -818,10 +816,10 @@ export async function updateUserProfile(
     const axiosInstance = createAuthenticatedRequest();
     const payload: {
       id: string;
-      name?: string;
+      first_name?: string;
       email?: string;
       username?: string;
-    } = { id, name, email, username };
+    } = { id, first_name, email, username };
     if (id == '') {
       return null;
     }
@@ -922,8 +920,26 @@ export interface Player {
 export interface User {
   id: string;
   email: string;
-  name: string;
   username: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  is_active?: boolean;
+  is_superuser?: boolean;
+  is_deleted?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  deleted_at?: string | null;
+  total_matches?: number;
+  total_goals_scored?: number;
+  total_goals_conceded?: number;
+  goal_difference?: number;
+  wins?: number;
+  losses?: number;
+  draws?: number;
+  points?: number;
+  elo_rating?: number;
+  tournaments_played?: number;
+  tournament_ids?: string[];
   access_token?: string;
 }
 
@@ -961,8 +977,11 @@ export interface MatchResult {
 }
 
 export interface PlayerStats {
-  name: string;
   id: string;
+  username: string;
+  email: string;
+  first_name?: string | null;
+  last_name?: string | null;
   total_matches: number;
   total_goals_scored: number;
   total_goals_conceded: number;
@@ -975,7 +994,10 @@ export interface PlayerStats {
 
 export interface DetailedPlayerStats {
   id: string;
-  name: string;
+  username: string;
+  email: string;
+  first_name?: string | null;
+  last_name?: string | null;
   total_matches: number;
   total_goals_scored: number;
   total_goals_conceded: number;
@@ -1002,7 +1024,8 @@ export interface UserDetailedStats {
   id: string;
   username: string;
   email: string;
-  name: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
   total_matches: number;
   total_goals_scored: number;
   total_goals_conceded: number;

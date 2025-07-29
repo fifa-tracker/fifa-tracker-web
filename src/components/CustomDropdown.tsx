@@ -15,6 +15,7 @@ interface CustomDropdownProps {
   placeholder?: string;
   className?: string;
   searchable?: boolean;
+  disabled?: boolean;
 }
 
 export default function CustomDropdown({
@@ -24,6 +25,7 @@ export default function CustomDropdown({
   placeholder = 'Select an option',
   className = '',
   searchable = false,
+  disabled = false,
 }: CustomDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -121,6 +123,7 @@ export default function CustomDropdown({
   }, [filteredOptions]);
 
   const handleSelect = (option: string | OptionItem) => {
+    if (disabled) return;
     onChange(getOptionValue(option));
     setIsOpen(false);
     setSearchTerm('');
@@ -128,6 +131,8 @@ export default function CustomDropdown({
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (disabled) return;
+
     console.log('Key pressed:', event.key, 'isOpen:', isOpen); // Debug log
 
     if (!isOpen) {
@@ -180,6 +185,8 @@ export default function CustomDropdown({
   };
 
   const handleSearchKeyDown = (event: React.KeyboardEvent) => {
+    if (disabled) return;
+
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
@@ -200,6 +207,7 @@ export default function CustomDropdown({
         ref={buttonRef}
         type="button"
         onClick={() => {
+          if (disabled) return;
           setIsOpen(!isOpen);
           if (!isOpen) {
             setHighlightedIndex(0);
@@ -209,8 +217,11 @@ export default function CustomDropdown({
         }}
         onKeyDown={handleKeyDown}
         onFocus={() => console.log('Button focused')} // Debug log
-        className="w-full bg-[#2d3748] text-white px-3 py-2 rounded-lg border border-gray-600 text-left text-sm sm:text-base focus:outline-none focus:border-blue-500 flex items-center justify-between"
-        tabIndex={0}
+        disabled={disabled}
+        className={`w-full bg-[#2d3748] text-white px-3 py-2 rounded-lg border border-gray-600 text-left text-sm sm:text-base focus:outline-none focus:border-blue-500 flex items-center justify-between ${
+          disabled ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
+        tabIndex={disabled ? -1 : 0}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
@@ -222,7 +233,7 @@ export default function CustomDropdown({
         />
       </button>
 
-      {isOpen && (
+      {isOpen && !disabled && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-[#2d3748] border border-gray-600 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
           {searchable && (
             <div className="sticky top-0 bg-[#2d3748] p-2 border-b border-gray-600">

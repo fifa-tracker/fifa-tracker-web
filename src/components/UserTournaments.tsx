@@ -4,17 +4,17 @@ import {
   getPlayers,
   getTournamentPlayers,
   getTournaments,
-  Player,
   removePlayerFromTournament,
   Tournament,
   updateTournament,
+  User,
 } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useEffect, useState } from 'react';
 import CustomDropdown from './CustomDropdown';
 
 interface TournamentWithPlayers extends Tournament {
-  players?: Player[];
+  players?: User[];
 }
 
 interface Toast {
@@ -31,7 +31,7 @@ export default function UserTournaments() {
     null
   );
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [allPlayers, setAllPlayers] = useState<Player[]>([]);
+  const [allPlayers, setAllPlayers] = useState<User[]>([]);
   const [editForm, setEditForm] = useState({
     name: '',
     description: '',
@@ -395,7 +395,9 @@ export default function UserTournaments() {
                                 key={player.id}
                                 className="bg-[#1a1f2e] text-white px-3 py-1 rounded-lg text-sm flex items-center gap-2 border border-gray-600"
                               >
-                                <span>{player.name}</span>
+                                <span>
+                                  {player.first_name || player.username}
+                                </span>
                                 <button
                                   onClick={() =>
                                     handleRemovePlayerFromTournament(
@@ -430,7 +432,7 @@ export default function UserTournaments() {
                                 tournament
                               ).map(player => ({
                                 value: player.id,
-                                label: player.name,
+                                label: player.first_name || player.username,
                               }))}
                               value=""
                               onChange={playerId => {
@@ -473,9 +475,9 @@ export default function UserTournaments() {
                 ) : (
                   // Display Mode
                   <div>
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
                           <h3 className="text-xl font-semibold text-white">
                             {tournament.name}
                           </h3>
@@ -485,30 +487,28 @@ export default function UserTournaments() {
                             </span>
                           )}
                         </div>
-                        <p className="text-gray-400 mt-1">
+                        <p className="text-gray-400">
                           {tournament.description}
                         </p>
                       </div>
-                      <div className="flex space-x-2">
-                        {user && tournament.owner_id === user.id && (
-                          <>
-                            <button
-                              onClick={() => handleEditClick(tournament)}
-                              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleDeleteTournament(tournament.id)
-                              }
-                              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors"
-                            >
-                              Delete
-                            </button>
-                          </>
-                        )}
-                      </div>
+                      {user && tournament.owner_id === user.id && (
+                        <div className="flex gap-2 sm:flex-shrink-0">
+                          <button
+                            onClick={() => handleEditClick(tournament)}
+                            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm transition-colors flex-1 sm:flex-none"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleDeleteTournament(tournament.id)
+                            }
+                            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded text-sm transition-colors flex-1 sm:flex-none"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
@@ -545,7 +545,7 @@ export default function UserTournaments() {
                               key={player.id}
                               className="bg-[#1a1f2e] text-white px-2 py-1 rounded text-xs"
                             >
-                              {player.name}
+                              {player.first_name || player.username}
                             </span>
                           ))
                         ) : (

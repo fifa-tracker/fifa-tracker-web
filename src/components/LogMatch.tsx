@@ -1,10 +1,10 @@
 import { FIFA23AllTeams } from '@/constants/teams';
-import { Player, recordMatch, Tournament } from '@/lib/api';
+import { recordMatch, Tournament, User } from '@/lib/api';
 import { useState } from 'react';
 import CustomDropdown from './CustomDropdown';
 
 interface LogMatchProps {
-  players: Player[];
+  players: User[];
   tournaments: Tournament[];
   selectedTournamentId: string;
   onMatchLogged?: () => void;
@@ -18,6 +18,9 @@ export default function LogMatch({
 }: LogMatchProps) {
   const selectedTournament =
     tournaments.find(t => t.id === selectedTournamentId) || tournaments[0];
+
+  // Check if the tournament is completed
+  const isTournamentCompleted = selectedTournament?.completed || false;
 
   const [formData, setFormData] = useState({
     player1_id: '',
@@ -33,6 +36,9 @@ export default function LogMatch({
   const teams = FIFA23AllTeams.map(team => team.name);
 
   const handleInputChange = (field: string, value: string | number) => {
+    // Don't allow changes if tournament is completed
+    if (isTournamentCompleted) return;
+
     setFormData(prev => ({
       ...prev,
       [field]: value,
@@ -40,6 +46,9 @@ export default function LogMatch({
   };
 
   const handleSubmit = () => {
+    // Don't allow submission if tournament is completed
+    if (isTournamentCompleted) return;
+
     // TODO: Implement match logging logic
     recordMatch(
       formData.player1_id,
@@ -80,18 +89,29 @@ export default function LogMatch({
         {selectedTournament?.name || 'the tournament'}
       </p>
 
+      {isTournamentCompleted && (
+        <div className="mb-4 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+          <p className="text-yellow-400 text-sm">
+            ⚠️ This tournament is completed. No new matches can be logged.
+          </p>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
         <div>
           <label className="block text-sm font-medium mb-2">Player 1</label>
           <select
-            className="w-full bg-[#2d3748] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm sm:text-base"
+            className={`w-full bg-[#2d3748] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm sm:text-base ${
+              isTournamentCompleted ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
             value={formData.player1_id}
             onChange={e => handleInputChange('player1_id', e.target.value)}
+            disabled={isTournamentCompleted}
           >
             <option value="">Select player 1</option>
             {players.map(player => (
               <option key={player.id} value={player.id}>
-                {player.name}
+                {player.first_name || player.username}
               </option>
             ))}
           </select>
@@ -103,6 +123,7 @@ export default function LogMatch({
             onChange={value => handleInputChange('team1', value)}
             placeholder="Select team 1"
             searchable={true}
+            disabled={isTournamentCompleted}
           />
 
           <label className="block text-sm font-medium mb-2 mt-4">
@@ -117,7 +138,12 @@ export default function LogMatch({
                   Math.max(0, formData.player1_goals - 1)
                 )
               }
-              className="w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold hover:bg-[#374151] transition-colors"
+              disabled={isTournamentCompleted}
+              className={`w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold transition-colors ${
+                isTournamentCompleted
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:bg-[#374151]'
+              }`}
             >
               -
             </button>
@@ -131,7 +157,12 @@ export default function LogMatch({
               onClick={() =>
                 handleInputChange('player1_goals', formData.player1_goals + 1)
               }
-              className="w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold hover:bg-[#374151] transition-colors"
+              disabled={isTournamentCompleted}
+              className={`w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold transition-colors ${
+                isTournamentCompleted
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:bg-[#374151]'
+              }`}
             >
               +
             </button>
@@ -141,14 +172,17 @@ export default function LogMatch({
         <div>
           <label className="block text-sm font-medium mb-2">Player 2</label>
           <select
-            className="w-full bg-[#2d3748] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm sm:text-base"
+            className={`w-full bg-[#2d3748] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm sm:text-base ${
+              isTournamentCompleted ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
             value={formData.player2_id}
             onChange={e => handleInputChange('player2_id', e.target.value)}
+            disabled={isTournamentCompleted}
           >
             <option value="">Select player 2</option>
             {players.map(player => (
               <option key={player.id} value={player.id}>
-                {player.name}
+                {player.first_name || player.username}
               </option>
             ))}
           </select>
@@ -160,6 +194,7 @@ export default function LogMatch({
             onChange={value => handleInputChange('team2', value)}
             placeholder="Select team 2"
             searchable={true}
+            disabled={isTournamentCompleted}
           />
 
           <label className="block text-sm font-medium mb-2 mt-4">
@@ -174,7 +209,12 @@ export default function LogMatch({
                   Math.max(0, formData.player2_goals - 1)
                 )
               }
-              className="w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold hover:bg-[#374151] transition-colors"
+              disabled={isTournamentCompleted}
+              className={`w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold transition-colors ${
+                isTournamentCompleted
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:bg-[#374151]'
+              }`}
             >
               -
             </button>
@@ -188,7 +228,12 @@ export default function LogMatch({
               onClick={() =>
                 handleInputChange('player2_goals', formData.player2_goals + 1)
               }
-              className="w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold hover:bg-[#374151] transition-colors"
+              disabled={isTournamentCompleted}
+              className={`w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold transition-colors ${
+                isTournamentCompleted
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:bg-[#374151]'
+              }`}
             >
               +
             </button>
@@ -209,7 +254,12 @@ export default function LogMatch({
                 Math.max(3, formData.half_length - 1)
               )
             }
-            className="w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold hover:bg-[#374151] transition-colors"
+            disabled={isTournamentCompleted}
+            className={`w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold transition-colors ${
+              isTournamentCompleted
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:bg-[#374151]'
+            }`}
           >
             -
           </button>
@@ -226,7 +276,12 @@ export default function LogMatch({
                 Math.min(6, formData.half_length + 1)
               )
             }
-            className="w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold hover:bg-[#374151] transition-colors"
+            disabled={isTournamentCompleted}
+            className={`w-12 h-12 bg-[#2d3748] border border-gray-600 rounded-lg flex items-center justify-center text-white text-xl font-bold transition-colors ${
+              isTournamentCompleted
+                ? 'opacity-50 cursor-not-allowed'
+                : 'hover:bg-[#374151]'
+            }`}
           >
             +
           </button>
@@ -237,14 +292,14 @@ export default function LogMatch({
       <div className="mt-6">
         <button
           className={`w-full font-medium py-3 px-4 rounded-lg transition-colors text-sm sm:text-base ${
-            !selectedTournament
+            !selectedTournament || isTournamentCompleted
               ? 'bg-gray-500 cursor-not-allowed text-gray-300'
               : 'bg-blue-500 hover:bg-blue-600 text-white'
           }`}
           onClick={handleSubmit}
-          disabled={!selectedTournament}
+          disabled={!selectedTournament || isTournamentCompleted}
         >
-          Log Match
+          {isTournamentCompleted ? 'Tournament Completed' : 'Log Match'}
         </button>
       </div>
     </div>

@@ -16,7 +16,8 @@ interface AuthContextType {
   accessToken: string | null;
   signIn: (identifier: string, password: string) => Promise<boolean>;
   signUp: (
-    name: string,
+    first_name: string,
+    last_name: string,
     email: string,
     password: string,
     username: string
@@ -99,8 +100,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userData: User = {
           id: user.id,
           email: user.email,
-          name: user.name,
           username: user.username,
+          first_name: user.first_name,
+          last_name: user.last_name,
         };
         setUser(userData);
         localStorage.setItem('fifa-tracker-user', JSON.stringify(userData));
@@ -118,14 +120,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (
-    name: string,
+    first_name: string,
+    last_name: string,
     email: string,
     password: string,
     username: string
   ): Promise<boolean> => {
     try {
       // Call the real registration API
-      const user = await register(name, email, password, username);
+      const user = await register(
+        first_name,
+        last_name,
+        email,
+        password,
+        username
+      );
       if (!user) {
         return false;
       }
@@ -153,8 +162,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userData: User = {
           id: user.id,
           email: user.email,
-          name: user.name,
           username: user.username,
+          first_name: user.first_name,
+          last_name: user.last_name,
         };
         setUser(userData);
         localStorage.setItem('fifa-tracker-user', JSON.stringify(userData));

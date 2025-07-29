@@ -6,6 +6,7 @@ interface MatchHistoryProps {
   matches: MatchResult[];
   tournamentId?: string;
   isTournamentCreator?: boolean;
+  isTournamentCompleted?: boolean;
   onMatchUpdated?: () => void;
   onPageChange?: (newPage: number) => void;
   currentPage?: number;
@@ -77,6 +78,7 @@ function groupMatchesByDate(matches: MatchResult[]): {
 export default function MatchHistory({
   matches,
   isTournamentCreator = false,
+  isTournamentCompleted = false,
   onMatchUpdated,
   onPageChange,
   currentPage = 1,
@@ -333,7 +335,7 @@ export default function MatchHistory({
                                 Half Length: {match.half_length} minutes
                               </span>
                             </div>
-                            {isTournamentCreator && (
+                            {isTournamentCreator && !isTournamentCompleted && (
                               <div className="flex space-x-1 sm:space-x-2">
                                 <button
                                   onClick={() => handleEditClick(match)}

@@ -21,9 +21,9 @@ import {
   getTournamentStandings,
   MatchResult,
   PaginatedResponse,
-  Player,
   PlayerStats,
   Tournament,
+  User,
 } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
@@ -36,7 +36,7 @@ export default function Home() {
   const [selectedTournament, setSelectedTournament] = useState<string>('');
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [table, setTable] = useState<PlayerStats[]>([]);
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [players, setPlayers] = useState<User[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [userCreatedTournaments, setUserCreatedTournaments] = useState<
     Tournament[]
@@ -201,7 +201,7 @@ export default function Home() {
                   <UserIcon className="w-4 h-4 text-white" />
                 </div>
                 <span className="hidden sm:block text-sm text-gray-300">
-                  {user?.name}
+                  {user?.first_name || user?.username}
                 </span>
               </div>
 
@@ -316,6 +316,7 @@ export default function Home() {
               isTournamentCreator={userCreatedTournaments.some(
                 t => t.id === selectedTournament
               )}
+              isTournamentCompleted={tournament?.completed || false}
               onMatchUpdated={refreshMatches}
               onPageChange={handlePageChange}
               currentPage={currentPage}

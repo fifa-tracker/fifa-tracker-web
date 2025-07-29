@@ -81,7 +81,7 @@ export default function ProfilePage() {
                     <UserIcon className="w-4 h-4 text-white" />
                   </div>
                   <span className="hidden sm:block text-sm text-gray-300">
-                    {user?.name}
+                    {user?.first_name || user?.username}
                   </span>
                 </button>
 
@@ -114,7 +114,9 @@ export default function ProfilePage() {
                 <UserIcon className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold">{user?.name}</h2>
+                <h2 className="text-2xl font-bold">
+                  {user?.first_name || user?.username}
+                </h2>
                 <p className="text-gray-400">{user?.email}</p>
                 {user?.username && (
                   <p className="text-gray-500 text-sm">@{user.username}</p>
@@ -134,7 +136,9 @@ export default function ProfilePage() {
                     <label className="block text-sm font-medium text-gray-400 mb-1">
                       Name
                     </label>
-                    <p className="text-white">{user?.name}</p>
+                    <p className="text-white">
+                      {user?.first_name || user?.username}
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-1">
