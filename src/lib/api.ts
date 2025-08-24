@@ -1,5 +1,42 @@
 import axios, { AxiosError } from 'axios';
 
+/**
+ * Debug Configuration
+ *
+ * To enable debug logging, set the environment variable:
+ * NEXT_PUBLIC_DEBUG_MODE=true
+ *
+ * This can be done by:
+ * 1. Creating a .env.local file with: NEXT_PUBLIC_DEBUG_MODE=true
+ * 2. Setting it in your shell: export NEXT_PUBLIC_DEBUG_MODE=true
+ * 3. Adding it to your deployment environment variables
+ *
+ * When enabled, all console.log, console.warn, and console.error statements
+ * will be displayed. When disabled, no debug output will be shown.
+ */
+
+// Debug configuration
+const DEBUG_MODE = process.env.NEXT_PUBLIC_DEBUG_MODE === 'true' || false;
+
+// Debug logging functions
+const debugLog = (...args: unknown[]) => {
+  if (DEBUG_MODE) {
+    console.log(...args);
+  }
+};
+
+const debugWarn = (...args: unknown[]) => {
+  if (DEBUG_MODE) {
+    console.warn(...args);
+  }
+};
+
+const debugError = (...args: unknown[]) => {
+  if (DEBUG_MODE) {
+    console.error(...args);
+  }
+};
+
 // Environment variables for API base URLs
 const API_BASE_URL_NGROK = process.env.NEXT_PUBLIC_API_BASE_URL_NGROK;
 const API_BASE_URL_LOCAL =
@@ -10,7 +47,7 @@ const ENVIRONMENT = process.env.NEXT_PUBLIC_ENVIRONMENT || process.env.NODE_ENV;
 const getApiBaseUrl = () => {
   // Check if we're in a browser environment
   if (typeof window !== 'undefined') {
-    console.log('getApiBaseUrl() called with:', {
+    debugLog('getApiBaseUrl() called with:', {
       ENVIRONMENT,
       API_BASE_URL_NGROK,
       API_BASE_URL_LOCAL,
@@ -24,7 +61,7 @@ const getApiBaseUrl = () => {
       let ngrokUrl = API_BASE_URL_NGROK.replace('http://', 'https://');
       ngrokUrl = ngrokUrl.replace(/\/$/, ''); // Remove trailing slash if present
       const result = `${ngrokUrl}/api/v1`;
-      console.log('Production with ngrok URL:', {
+      debugLog('Production with ngrok URL:', {
         original: API_BASE_URL_NGROK,
         result,
       });
@@ -37,7 +74,7 @@ const getApiBaseUrl = () => {
       window.location.hostname === '127.0.0.1'
     ) {
       const result = `${API_BASE_URL_LOCAL}/api/v1`;
-      console.log('Development (localhost):', result);
+      debugLog('Development (localhost):', result);
       return result;
     }
 
@@ -47,7 +84,7 @@ const getApiBaseUrl = () => {
       let ngrokUrl = API_BASE_URL_NGROK.replace('http://', 'https://');
       ngrokUrl = ngrokUrl.replace(/\/$/, ''); // Remove trailing slash if present
       const result = `${ngrokUrl}/api/v1`;
-      console.log('Production with ngrok URL (fallback):', {
+      debugLog('Production with ngrok URL (fallback):', {
         original: API_BASE_URL_NGROK,
         result,
       });
@@ -55,21 +92,21 @@ const getApiBaseUrl = () => {
     }
 
     // Fallback to localhost if no ngrok URL is configured
-    console.warn('No ngrok URL configured, falling back to localhost');
+    debugWarn('No ngrok URL configured, falling back to localhost');
     const result = `${API_BASE_URL_LOCAL}/api/v1`;
-    console.log('Fallback to localhost:', result);
+    debugLog('Fallback to localhost:', result);
     return result;
   }
   // Server-side rendering - default to localhost
   const result = `${API_BASE_URL_LOCAL}/api/v1`;
-  console.log('Server-side rendering:', result);
+  debugLog('Server-side rendering:', result);
   return result;
 };
 
 const API_BASE_URL = getApiBaseUrl();
 
 // Debug logging
-console.log('API Configuration:', {
+debugLog('API Configuration:', {
   API_BASE_URL_NGROK,
   API_BASE_URL_LOCAL,
   ENVIRONMENT,
@@ -83,8 +120,8 @@ if (typeof window !== 'undefined') {
     window.location.protocol === 'https:' &&
     API_BASE_URL.startsWith('http:')
   ) {
-    console.error('SECURITY WARNING: Using HTTP API URL in HTTPS environment!');
-    console.error('This will cause mixed content errors.');
+    debugError('SECURITY WARNING: Using HTTP API URL in HTTPS environment!');
+    debugError('This will cause mixed content errors.');
   }
 }
 
@@ -115,11 +152,11 @@ const createAuthenticatedRequest = () => {
 
       // Double-check and log if we're still using HTTP
       if (finalBaseUrl.startsWith('http://')) {
-        console.error('WARNING: Still using HTTP after HTTPS enforcement!');
-        console.error('Original URL:', freshApiBaseUrl);
-        console.error('Final URL:', finalBaseUrl);
-        console.error('Environment:', ENVIRONMENT);
-        console.error('Ngrok URL:', API_BASE_URL_NGROK);
+        debugError('WARNING: Still using HTTP after HTTPS enforcement!');
+        debugError('Original URL:', freshApiBaseUrl);
+        debugError('Final URL:', finalBaseUrl);
+        debugError('Environment:', ENVIRONMENT);
+        debugError('Ngrok URL:', API_BASE_URL_NGROK);
       }
     }
   }
@@ -130,11 +167,11 @@ const createAuthenticatedRequest = () => {
     window.location.hostname !== 'localhost' &&
     finalBaseUrl.startsWith('http://')
   ) {
-    console.error('CRITICAL: Forcing HTTPS conversion for production!');
+    debugError('CRITICAL: Forcing HTTPS conversion for production!');
     finalBaseUrl = finalBaseUrl.replace('http://', 'https://');
   }
 
-  console.log('Creating authenticated request:', {
+  debugLog('Creating authenticated request:', {
     hasToken: !!token,
     tokenLength: token?.length,
     baseURL: finalBaseUrl,
@@ -167,7 +204,7 @@ const createAuthenticatedRequest = () => {
     config => {
       // Log the actual request URL being made
       const fullUrl = (config.baseURL || '') + (config.url || '');
-      console.log('Making request to:', {
+      debugLog('Making request to:', {
         method: config.method,
         url: config.url,
         baseURL: config.baseURL,
@@ -229,18 +266,18 @@ export async function getPlayers(): Promise<User[]> {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
-      console.error('Error fetching players:', {
+      debugError('Error fetching players:', {
         message: axiosError.message,
         code: axiosError.code,
         config: axiosError.config,
       });
       if (axiosError.code === 'ECONNREFUSED') {
-        console.error(
+        debugError(
           'Unable to connect to the API server. Please check if the server is running.'
         );
       }
     } else {
-      console.error('Unexpected error:', error);
+      debugError('Unexpected error:', error);
     }
     return [];
   }
@@ -271,17 +308,17 @@ export async function recordMatch(
     });
     return response.data;
   } catch (error) {
-    console.error('Error recording match:', error);
+    debugError('Error recording match:', error);
 
     // Check for mixed content error specifically
     if (axios.isAxiosError(error) && error.code === 'ERR_NETWORK') {
-      console.error('Network error detected. This might be due to:');
-      console.error(
+      debugError('Network error detected. This might be due to:');
+      debugError(
         '1. Mixed content: HTTPS frontend trying to connect to HTTP backend'
       );
-      console.error('2. CORS issues');
-      console.error('3. Backend server not running');
-      console.error('Current API URL:', API_BASE_URL);
+      debugError('2. CORS issues');
+      debugError('3. Backend server not running');
+      debugError('Current API URL:', API_BASE_URL);
 
       // Check if we're using HTTP in production
       if (
@@ -289,10 +326,10 @@ export async function recordMatch(
         window.location.protocol === 'https:' &&
         API_BASE_URL.startsWith('http:')
       ) {
-        console.error('MIXED CONTENT ERROR: Frontend is HTTPS but API is HTTP');
-        console.error('Solution: Use HTTPS ngrok URL in environment variables');
-        console.error('Current ngrok URL:', API_BASE_URL_NGROK);
-        console.error('Expected format: https://your-ngrok-url.ngrok-free.app');
+        debugError('MIXED CONTENT ERROR: Frontend is HTTPS but API is HTTP');
+        debugError('Solution: Use HTTPS ngrok URL in environment variables');
+        debugError('Current ngrok URL:', API_BASE_URL_NGROK);
+        debugError('Expected format: https://your-ngrok-url.ngrok-free.app');
       }
     }
 
@@ -306,9 +343,9 @@ export async function getTable(): Promise<PlayerStats[]> {
     const response = await axiosInstance.get('/stats/');
     return response.data;
   } catch (error) {
-    console.error('Error fetching table:', error);
+    debugError('Error fetching table:', error);
     if (axios.isAxiosError(error)) {
-      console.error('Axios error details:', {
+      debugError('Axios error details:', {
         message: error.message,
         code: error.code,
         status: error.response?.status,
@@ -330,7 +367,7 @@ export async function getMatchHistory(): Promise<MatchResult[]> {
     const response = await axiosInstance.get('/matches/');
     return response.data;
   } catch (error) {
-    console.error('Error fetching match history:', error);
+    debugError('Error fetching match history:', error);
     return [];
   }
 }
@@ -341,7 +378,7 @@ export async function createPlayer(name: string): Promise<Player | null> {
     const response = await axiosInstance.post('/players/', { name });
     return response.data;
   } catch (error) {
-    console.error('Error creating player:', error);
+    debugError('Error creating player:', error);
     return null;
   }
 }
@@ -363,7 +400,7 @@ export async function getHeadToHead(
     );
     return response.data;
   } catch (error) {
-    console.error('Error fetching head-to-head stats:', error);
+    debugError('Error fetching head-to-head stats:', error);
     return {
       player1_wins: 0,
       player2_wins: 0,
@@ -379,7 +416,7 @@ export async function deletePlayer(player_id: string): Promise<void> {
     const axiosInstance = createAuthenticatedRequest();
     await axiosInstance.delete(`/player/${player_id}/`);
   } catch (error) {
-    console.error('Error deleting player:', error);
+    debugError('Error deleting player:', error);
   }
 }
 
@@ -391,7 +428,7 @@ export async function updatePlayer(
     const axiosInstance = createAuthenticatedRequest();
     await axiosInstance.put(`/player/${player_id}/`, { name: newName });
   } catch (error) {
-    console.error('Error updating player:', error);
+    debugError('Error updating player:', error);
   }
 }
 
@@ -409,7 +446,7 @@ export async function updateMatch(
       half_length,
     });
   } catch (error) {
-    console.error('Error updating match:', error);
+    debugError('Error updating match:', error);
   }
 }
 
@@ -418,7 +455,7 @@ export async function deleteMatch(match_id: string): Promise<void> {
     const axiosInstance = createAuthenticatedRequest();
     await axiosInstance.delete(`/matches/${match_id}`);
   } catch (error) {
-    console.error('Error deleting match:', error);
+    debugError('Error deleting match:', error);
   }
 }
 
@@ -426,18 +463,18 @@ export async function getPlayerStats(
   player_id: string
 ): Promise<DetailedPlayerStats | null> {
   try {
-    console.log('getPlayerStats called with player_id:', player_id);
+    debugLog('getPlayerStats called with player_id:', player_id);
     const axiosInstance = createAuthenticatedRequest();
-    console.log(
+    debugLog(
       'getPlayerStats axios instance baseURL:',
       axiosInstance.defaults.baseURL
     );
     const response = await axiosInstance.get(`/players/${player_id}/stats/`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching player stats:', error);
+    debugError('Error fetching player stats:', error);
     if (axios.isAxiosError(error)) {
-      console.error('getPlayerStats Axios error details:', {
+      debugError('getPlayerStats Axios error details:', {
         message: error.message,
         code: error.code,
         status: error.response?.status,
@@ -457,14 +494,14 @@ export async function getPlayerStats(
 export async function getTournaments(): Promise<Tournament[]> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    console.log('Making request to tournaments endpoint...');
+    debugLog('Making request to tournaments endpoint...');
     const response = await axiosInstance.get('/tournaments/');
-    console.log('Tournaments response:', response.data);
+    debugLog('Tournaments response:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error fetching tournaments:', error);
+    debugError('Error fetching tournaments:', error);
     if (axios.isAxiosError(error)) {
-      console.error('Axios error details:', {
+      debugError('Axios error details:', {
         message: error.message,
         code: error.code,
         status: error.response?.status,
@@ -489,7 +526,7 @@ export async function getTournament(
     const response = await axiosInstance.get(`/tournaments/${tournament_id}/`);
     return response.data;
   } catch (error) {
-    console.error('Error fetching tournament:', error);
+    debugError('Error fetching tournament:', error);
     return null;
   }
 }
@@ -519,7 +556,7 @@ export async function updateTournament(
     );
     return response.data;
   } catch (error) {
-    console.error('Error updating tournament:', error);
+    debugError('Error updating tournament:', error);
     return null;
   }
 }
@@ -538,7 +575,7 @@ export async function createTournament(
     });
     return response.data;
   } catch (error) {
-    console.error('Error creating tournament:', error);
+    debugError('Error creating tournament:', error);
     return null;
   }
 }
@@ -548,7 +585,7 @@ export async function deleteTournament(tournament_id: string): Promise<void> {
     const axiosInstance = createAuthenticatedRequest();
     await axiosInstance.delete(`/tournaments/${tournament_id}`);
   } catch (error) {
-    console.error('Error deleting tournament:', error);
+    debugError('Error deleting tournament:', error);
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 403) {
@@ -580,7 +617,7 @@ export async function addPlayerToTournament(
       player_id,
     });
   } catch (error) {
-    console.error('Error adding player to tournament:', error);
+    debugError('Error adding player to tournament:', error);
   }
 }
 
@@ -594,7 +631,7 @@ export async function removePlayerFromTournament(
       `/tournaments/${tournament_id}/players/${player_id}`
     );
   } catch (error) {
-    console.error('Error removing player from tournament:', error);
+    debugError('Error removing player from tournament:', error);
   }
 }
 
@@ -604,7 +641,7 @@ export async function getTournamentPlayers(
   try {
     // Guard against empty tournament ID
     if (!tournament_id || tournament_id.trim() === '') {
-      console.warn(
+      debugWarn(
         'Attempted to fetch tournament players with empty tournament ID'
       );
       return [];
@@ -616,7 +653,7 @@ export async function getTournamentPlayers(
     );
     return response.data;
   } catch (error) {
-    console.error('Error fetching tournament players:', error);
+    debugError('Error fetching tournament players:', error);
     return [];
   }
 }
@@ -629,7 +666,7 @@ export async function getTournamentMatches(
   try {
     // Guard against empty tournament ID
     if (!tournament_id || tournament_id.trim() === '') {
-      console.warn(
+      debugWarn(
         'Attempted to fetch tournament matches with empty tournament ID'
       );
       return {
@@ -655,7 +692,7 @@ export async function getTournamentMatches(
     );
     return response.data;
   } catch (error) {
-    console.error('Error fetching tournament matches:', error);
+    debugError('Error fetching tournament matches:', error);
     return {
       items: [],
       total: 0,
@@ -674,7 +711,7 @@ export async function getTournamentStandings(
   try {
     // Guard against empty tournament ID
     if (!tournament_id || tournament_id.trim() === '') {
-      console.warn(
+      debugWarn(
         'Attempted to fetch tournament standings with empty tournament ID'
       );
       return [];
@@ -686,7 +723,7 @@ export async function getTournamentStandings(
     );
     return response.data;
   } catch (error) {
-    console.error('Error fetching tournament standings:', error);
+    debugError('Error fetching tournament standings:', error);
     return [];
   }
 }
@@ -704,7 +741,7 @@ export async function register(
     const response = await axios.post(`${API_BASE_URL}/auth/register`, payload);
     return response.data;
   } catch (error) {
-    console.error('Error registering:', error);
+    debugError('Error registering:', error);
     return null;
   }
 }
@@ -734,9 +771,9 @@ export async function login(
 
     return response.data;
   } catch (error) {
-    console.error('Error logging in:', error);
+    debugError('Error logging in:', error);
     if (axios.isAxiosError(error)) {
-      console.error('Login error details:', {
+      debugError('Login error details:', {
         status: error.response?.status,
         statusText: error.response?.statusText,
         data: error.response?.data,
@@ -769,7 +806,7 @@ export async function refreshToken(): Promise<string | null> {
 
     return null;
   } catch (error) {
-    console.error('Error refreshing token:', error);
+    debugError('Error refreshing token:', error);
     // Clear tokens on refresh failure
     localStorage.removeItem('fifa-tracker-token');
     localStorage.removeItem('fifa-tracker-refresh-token');
@@ -783,7 +820,7 @@ export async function getCurrentUser(): Promise<User | null> {
     const response = await axiosInstance.get('/auth/me');
     return response.data;
   } catch (error) {
-    console.error('Error fetching current user:', error);
+    debugError('Error fetching current user:', error);
     return null;
   }
 }
@@ -797,7 +834,7 @@ export async function checkUsernameAvailability(
     const response = await axiosInstance.post(`/auth/check-username`, payload);
     return !response.data.exists;
   } catch (error) {
-    console.error('Error checking username availability:', error);
+    debugError('Error checking username availability:', error);
     // If the API call fails, we'll assume the username is taken to be safe
     return false;
   }
@@ -823,7 +860,7 @@ export async function updateUserProfile(
     const response = await axiosInstance.put(`/players/${id}`, payload);
     return response.data;
   } catch (error) {
-    console.error('Error updating user profile:', error);
+    debugError('Error updating user profile:', error);
     return null;
   }
 }
@@ -838,7 +875,7 @@ export async function deleteUserAccount(
     });
     return true;
   } catch (error) {
-    console.error('Error deleting user account:', error);
+    debugError('Error deleting user account:', error);
     return false;
   }
 }
@@ -853,8 +890,8 @@ export async function getCurrentUserStats(
     }
 
     // Additional debugging for this specific function
-    console.log('getCurrentUserStats called with player_id:', player_id);
-    console.log('Axios instance baseURL:', axiosInstance.defaults.baseURL);
+    debugLog('getCurrentUserStats called with player_id:', player_id);
+    debugLog('Axios instance baseURL:', axiosInstance.defaults.baseURL);
 
     // Add cache-busting parameter to avoid browser caching issues
     const timestamp = Date.now();
@@ -865,11 +902,11 @@ export async function getCurrentUserStats(
     // The API returns a single UserDetailedStats object, not an array
     return response.data || null;
   } catch (error) {
-    console.error('Error fetching current user stats:', error);
+    debugError('Error fetching current user stats:', error);
 
     // Additional error logging for debugging
     if (axios.isAxiosError(error)) {
-      console.error('getCurrentUserStats Axios error details:', {
+      debugError('getCurrentUserStats Axios error details:', {
         message: error.message,
         code: error.code,
         status: error.response?.status,
@@ -893,7 +930,7 @@ export async function getAllUsersStats(): Promise<UserDetailedStats[]> {
     const response = await axiosInstance.get('/stats/');
     return response.data;
   } catch (error) {
-    console.error('Error fetching all users stats:', error);
+    debugError('Error fetching all users stats:', error);
     return [];
   }
 }
