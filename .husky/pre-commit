@@ -1,8 +1,8 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-# Run lint-staged to lint and format staged files
-npx lint-staged
+# Run lint-staged using npm script (more reliable than npx)
+npm run lint-staged
 
 # Run type checking
 npm run type-check
