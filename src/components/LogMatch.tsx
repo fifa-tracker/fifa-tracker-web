@@ -8,6 +8,15 @@ interface LogMatchProps {
   tournaments: Tournament[];
   selectedTournamentId: string;
   onMatchLogged?: () => void;
+  prePopulatedMatch?: {
+    player1_id: string;
+    player2_id: string;
+    team1: string;
+    team2: string;
+    player1_goals: number;
+    player2_goals: number;
+    half_length: number;
+  };
 }
 
 export default function LogMatch({
@@ -15,6 +24,7 @@ export default function LogMatch({
   tournaments,
   selectedTournamentId,
   onMatchLogged,
+  prePopulatedMatch,
 }: LogMatchProps) {
   const selectedTournament =
     tournaments.find(t => t.id === selectedTournamentId) || tournaments[0];
@@ -23,14 +33,14 @@ export default function LogMatch({
   const isTournamentCompleted = selectedTournament?.completed || false;
 
   const [formData, setFormData] = useState({
-    player1_id: '',
-    player2_id: '',
-    team1: '',
-    team2: '',
-    player1_goals: 0,
-    player2_goals: 0,
+    player1_id: prePopulatedMatch?.player1_id || '',
+    player2_id: prePopulatedMatch?.player2_id || '',
+    team1: prePopulatedMatch?.team1 || '',
+    team2: prePopulatedMatch?.team2 || '',
+    player1_goals: prePopulatedMatch?.player1_goals || 0,
+    player2_goals: prePopulatedMatch?.player2_goals || 0,
     tournament_id: selectedTournament?.id || '',
-    half_length: 3,
+    half_length: prePopulatedMatch?.half_length || 3,
   });
 
   const teams = FIFA23AllTeams.map(team => team.name);
@@ -70,14 +80,14 @@ export default function LogMatch({
         console.error('Error logging match:', error);
       });
     setFormData({
-      player1_id: '',
-      player2_id: '',
-      team1: '',
-      team2: '',
-      player1_goals: 0,
-      player2_goals: 0,
+      player1_id: prePopulatedMatch?.player1_id || '',
+      player2_id: prePopulatedMatch?.player2_id || '',
+      team1: prePopulatedMatch?.team1 || '',
+      team2: prePopulatedMatch?.team2 || '',
+      player1_goals: prePopulatedMatch?.player1_goals || 0,
+      player2_goals: prePopulatedMatch?.player2_goals || 0,
       tournament_id: selectedTournament?.id || '',
-      half_length: 3,
+      half_length: prePopulatedMatch?.half_length || 3,
     });
   };
 

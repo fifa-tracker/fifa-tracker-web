@@ -25,7 +25,7 @@
 - Store tokens in localStorage with keys: 'fifa-tracker-token', 'fifa-tracker-refresh-token'
 
 ### Authentication Flow
-- Login endpoint: `/auth/login-json` (POST)
+- Login endpoint: `/auth/login` (POST)
 - Register endpoint: `/auth/register` (POST)
 - Token refresh: `/auth/refresh` (POST)
 - Current user: `/auth/me` (GET)

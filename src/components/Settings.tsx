@@ -3,7 +3,11 @@ import { useAuth } from '@/lib/auth';
 import { useEffect, useRef, useState } from 'react';
 import UserTournaments from './UserTournaments';
 
-export default function Settings() {
+interface SettingsProps {
+  onTournamentCreated?: () => void;
+}
+
+export default function Settings({ onTournamentCreated }: SettingsProps) {
   const { user } = useAuth();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -105,8 +109,14 @@ export default function Settings() {
         setDescription('');
         setPlayer_ids([]);
         setSelectedPlayers([]);
+
         // Switch to manage tab to show the new tournament
         setActiveTab('manage');
+
+        // Refresh the tournament list in the parent component
+        if (onTournamentCreated) {
+          onTournamentCreated();
+        }
       }
     } catch (error) {
       console.error('Error creating tournament:', error);
@@ -284,7 +294,7 @@ export default function Settings() {
             </div>
           </div>
         ) : (
-          <UserTournaments />
+          <UserTournaments onTournamentCreated={onTournamentCreated} />
         )}
       </div>
     </div>

@@ -47,6 +47,15 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(20); // Show 20 matches per page
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [prePopulatedMatch, setPrePopulatedMatch] = useState<{
+    player1_id: string;
+    player2_id: string;
+    team1: string;
+    team2: string;
+    player1_goals: number;
+    player2_goals: number;
+    half_length: number;
+  } | null>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -120,6 +129,11 @@ export default function Home() {
   const handleTabClick = async (tabId: string) => {
     setActiveTab(tabId);
 
+    // Clear pre-populated match data when switching to log-match tab manually
+    if (tabId === 'log-match') {
+      setPrePopulatedMatch(null);
+    }
+
     if (tabId === 'tournament' && selectedTournament) {
       try {
         const standings = await getTournamentStandings(selectedTournament);
@@ -164,6 +178,23 @@ export default function Home() {
     }
   };
 
+  const refreshTournaments = async () => {
+    try {
+      const tournaments = await getTournaments();
+      setTournaments(tournaments);
+      setUserCreatedTournaments(tournaments);
+
+      // If the newly created tournament is not in the current selection, select it
+      if (tournaments.length > 0 && !selectedTournament) {
+        const firstTournamentId = tournaments[0].id;
+        setSelectedTournament(firstTournamentId);
+        setTournament(tournaments[0]);
+      }
+    } catch (error) {
+      console.error('Error refreshing tournaments:', error);
+    }
+  };
+
   const handlePageChange = async (newPage: number) => {
     if (selectedTournament) {
       setCurrentPage(newPage);
@@ -178,6 +209,33 @@ export default function Home() {
       } catch (error) {
         console.error('Error fetching matches for page:', error);
       }
+    }
+  };
+
+  const handleMatchClick = (match: MatchResult) => {
+    // Find the player IDs from the players list
+    const player1 = players.find(
+      p =>
+        p.first_name === match.player1_name || p.username === match.player1_name
+    );
+    const player2 = players.find(
+      p =>
+        p.first_name === match.player2_name || p.username === match.player2_name
+    );
+
+    if (player1 && player2) {
+      setPrePopulatedMatch({
+        player1_id: player1.id,
+        player2_id: player2.id,
+        team1: '', // Teams are not stored in MatchResult, so we'll leave them empty
+        team2: '', // Teams are not stored in MatchResult, so we'll leave them empty
+        player1_goals: match.player1_goals,
+        player2_goals: match.player2_goals,
+        half_length: match.half_length,
+      });
+
+      // Switch to log-match tab
+      setActiveTab('log-match');
     }
   };
 
@@ -321,6 +379,7 @@ export default function Home() {
               onPageChange={handlePageChange}
               currentPage={currentPage}
               totalPages={matchesPagination?.total_pages || 1}
+              onMatchClick={handleMatchClick}
             />
           )}
 
@@ -330,10 +389,13 @@ export default function Home() {
               tournaments={tournaments}
               selectedTournamentId={selectedTournament}
               onMatchLogged={() => handleTabClick('history')}
+              prePopulatedMatch={prePopulatedMatch || undefined}
             />
           )}
 
-          {activeTab === 'settings' && <Settings />}
+          {activeTab === 'settings' && (
+            <Settings onTournamentCreated={refreshTournaments} />
+          )}
         </div>
       </div>
     </ProtectedRoute>

@@ -23,7 +23,20 @@ interface Toast {
   type: 'success' | 'error';
 }
 
-export default function UserTournaments() {
+interface ConfirmationToast {
+  id: string;
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+interface UserTournamentsProps {
+  onTournamentCreated?: () => void;
+}
+
+export default function UserTournaments({
+  onTournamentCreated,
+}: UserTournamentsProps) {
   const { user } = useAuth();
   const [tournaments, setTournaments] = useState<TournamentWithPlayers[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +44,9 @@ export default function UserTournaments() {
     null
   );
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [confirmationToasts, setConfirmationToasts] = useState<
+    ConfirmationToast[]
+  >([]);
   const [allPlayers, setAllPlayers] = useState<User[]>([]);
   const [editForm, setEditForm] = useState({
     name: '',
@@ -54,6 +70,26 @@ export default function UserTournaments() {
 
   const removeToast = (id: string) => {
     setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
+
+  // Confirmation toast functions
+  const showConfirmationToast = (
+    message: string,
+    onConfirm: () => void,
+    onCancel: () => void
+  ) => {
+    const id = Date.now().toString();
+    const newConfirmationToast: ConfirmationToast = {
+      id,
+      message,
+      onConfirm,
+      onCancel,
+    };
+    setConfirmationToasts(prev => [...prev, newConfirmationToast]);
+  };
+
+  const removeConfirmationToast = (id: string) => {
+    setConfirmationToasts(prev => prev.filter(toast => toast.id !== id));
   };
 
   useEffect(() => {
@@ -134,6 +170,11 @@ export default function UserTournaments() {
         );
         setEditingTournament(null);
         showToast('Tournament updated successfully!', 'success');
+
+        // Refresh the tournament list in the parent component
+        if (onTournamentCreated) {
+          onTournamentCreated();
+        }
       } else {
         showToast('Failed to update tournament. Please try again.', 'error');
         setEditingTournament(null);
@@ -149,27 +190,32 @@ export default function UserTournaments() {
     setEditingTournament(null);
   };
 
-  const handleDeleteTournament = async (tournamentId: string) => {
-    if (
-      !confirm(
-        'Are you sure you want to delete this tournament? This action cannot be undone.'
-      )
-    ) {
-      return;
-    }
+  const handleDeleteTournament = (tournamentId: string) => {
+    showConfirmationToast(
+      'Are you sure you want to delete this tournament? This action cannot be undone.',
+      async () => {
+        try {
+          await deleteTournament(tournamentId);
+          setTournaments(prev => prev.filter(t => t.id !== tournamentId));
+          showToast('Tournament deleted successfully!', 'success');
 
-    try {
-      await deleteTournament(tournamentId);
-      setTournaments(prev => prev.filter(t => t.id !== tournamentId));
-      showToast('Tournament deleted successfully!', 'success');
-    } catch (error) {
-      console.error('Error deleting tournament:', error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Failed to delete tournament. Please try again.';
-      showToast(errorMessage, 'error');
-    }
+          // Refresh the tournament list in the parent component
+          if (onTournamentCreated) {
+            onTournamentCreated();
+          }
+        } catch (error) {
+          console.error('Error deleting tournament:', error);
+          const errorMessage =
+            error instanceof Error
+              ? error.message
+              : 'Failed to delete tournament. Please try again.';
+          showToast(errorMessage, 'error');
+        }
+      },
+      () => {
+        // Cancel action - do nothing
+      }
+    );
   };
 
   const handleAddPlayerToTournament = async (
@@ -581,6 +627,40 @@ export default function UserTournaments() {
             >
               ×
             </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Confirmation Toast Notifications */}
+      <div className="fixed top-4 right-4 z-50 space-y-2">
+        {confirmationToasts.map(toast => (
+          <div
+            key={toast.id}
+            className="bg-orange-500 border-orange-600 text-white px-4 py-3 rounded-lg shadow-lg border min-w-[350px] animate-in slide-in-from-right duration-300"
+          >
+            <div className="mb-3">
+              <span className="font-medium">{toast.message}</span>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => {
+                  toast.onCancel();
+                  removeConfirmationToast(toast.id);
+                }}
+                className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  toast.onConfirm();
+                  removeConfirmationToast(toast.id);
+                }}
+                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </div>

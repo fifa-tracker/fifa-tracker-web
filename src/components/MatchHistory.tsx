@@ -11,6 +11,7 @@ interface MatchHistoryProps {
   onPageChange?: (newPage: number) => void;
   currentPage?: number;
   totalPages?: number;
+  onMatchClick?: (match: MatchResult) => void;
 }
 
 interface Toast {
@@ -83,6 +84,7 @@ export default function MatchHistory({
   onPageChange,
   currentPage = 1,
   totalPages,
+  onMatchClick,
 }: MatchHistoryProps) {
   const [editingMatch, setEditingMatch] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
@@ -199,7 +201,16 @@ export default function MatchHistory({
                   {dateMatches.map((match, index) => (
                     <div
                       key={`${dateKey}-${index}`}
-                      className="bg-[#2d3748] rounded-lg p-3 sm:p-4"
+                      className={`bg-[#2d3748] rounded-lg p-3 sm:p-4 ${
+                        onMatchClick && editingMatch !== match.id
+                          ? 'cursor-pointer hover:bg-[#374151] transition-colors'
+                          : ''
+                      }`}
+                      onClick={
+                        onMatchClick && editingMatch !== match.id
+                          ? () => onMatchClick(match)
+                          : undefined
+                      }
                     >
                       {editingMatch === match.id ? (
                         // Edit Form
@@ -338,14 +349,20 @@ export default function MatchHistory({
                             {isTournamentCreator && !isTournamentCompleted && (
                               <div className="flex space-x-1 sm:space-x-2">
                                 <button
-                                  onClick={() => handleEditClick(match)}
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    handleEditClick(match);
+                                  }}
                                   className="bg-blue-500 hover:bg-blue-600 text-white p-1.5 sm:p-2 rounded transition-colors"
                                   title="Edit match"
                                 >
                                   <PencilIcon className="w-3 h-3 sm:w-4 sm:h-4" />
                                 </button>
                                 <button
-                                  onClick={() => handleDeleteMatch(match.id)}
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    handleDeleteMatch(match.id);
+                                  }}
                                   className="bg-red-500 hover:bg-red-600 text-white p-1.5 sm:p-2 rounded transition-colors"
                                   title="Delete match"
                                 >
