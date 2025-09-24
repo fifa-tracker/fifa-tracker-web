@@ -59,7 +59,8 @@ export default function AuthPage() {
     setError('');
 
     try {
-      const success = await signIn(formData.username, formData.password);
+      const trimmedUsername = formData.username.trim();
+      const success = await signIn(trimmedUsername, formData.password);
       if (success) {
         router.push('/');
       } else {
@@ -84,12 +85,13 @@ export default function AuthPage() {
     }
 
     try {
+      const trimmedUsername = formData.username.trim();
       const success = await signUp(
         formData.first_name,
         formData.last_name,
         formData.email,
         formData.password,
-        formData.username
+        trimmedUsername
       );
       if (success) {
         router.push('/');

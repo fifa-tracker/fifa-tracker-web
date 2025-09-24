@@ -77,17 +77,25 @@ export default function Home() {
   useEffect(() => {
     const initializeData = async () => {
       const tournaments = await getTournaments();
-      setTournaments(tournaments);
+
+      // Sort tournaments by start_date in descending order (most recent first)
+      const sortedTournaments = tournaments.sort(
+        (a, b) =>
+          new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
+      );
+
+      setTournaments(sortedTournaments);
 
       // For now, we'll assume all tournaments are user-created
       // In a real implementation, the backend would provide a way to distinguish
       // between tournaments created by the current user vs all tournaments
-      setUserCreatedTournaments(tournaments);
+      setUserCreatedTournaments(sortedTournaments);
 
-      if (tournaments.length > 0) {
-        const firstTournamentId = tournaments[0].id;
-        setSelectedTournament(firstTournamentId);
-        setTournament(tournaments[0]);
+      if (sortedTournaments.length > 0) {
+        // Select the most recent tournament (first in sorted array)
+        const mostRecentTournament = sortedTournaments[0];
+        setSelectedTournament(mostRecentTournament.id);
+        setTournament(mostRecentTournament);
       }
     };
 
@@ -181,14 +189,21 @@ export default function Home() {
   const refreshTournaments = async () => {
     try {
       const tournaments = await getTournaments();
-      setTournaments(tournaments);
-      setUserCreatedTournaments(tournaments);
 
-      // If the newly created tournament is not in the current selection, select it
-      if (tournaments.length > 0 && !selectedTournament) {
-        const firstTournamentId = tournaments[0].id;
-        setSelectedTournament(firstTournamentId);
-        setTournament(tournaments[0]);
+      // Sort tournaments by start_date in descending order (most recent first)
+      const sortedTournaments = tournaments.sort(
+        (a, b) =>
+          new Date(b.start_date).getTime() - new Date(a.start_date).getTime()
+      );
+
+      setTournaments(sortedTournaments);
+      setUserCreatedTournaments(sortedTournaments);
+
+      // If the newly created tournament is not in the current selection, select the most recent one
+      if (sortedTournaments.length > 0 && !selectedTournament) {
+        const mostRecentTournament = sortedTournaments[0];
+        setSelectedTournament(mostRecentTournament.id);
+        setTournament(mostRecentTournament);
       }
     } catch (error) {
       console.error('Error refreshing tournaments:', error);
@@ -210,6 +225,11 @@ export default function Home() {
         console.error('Error fetching matches for page:', error);
       }
     }
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'Not set';
+    return new Date(dateString).toLocaleDateString();
   };
 
   const handleMatchClick = (match: MatchResult) => {
@@ -258,9 +278,12 @@ export default function Home() {
                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                   <UserIcon className="w-4 h-4 text-white" />
                 </div>
-                <span className="hidden sm:block text-sm text-gray-300">
+                <button
+                  onClick={() => router.push('/profile')}
+                  className="hidden sm:block text-sm text-gray-300 hover:text-white transition-colors cursor-pointer"
+                >
                   {user?.first_name || user?.username}
-                </span>
+                </button>
               </div>
 
               {/* Burger Menu */}
@@ -324,7 +347,13 @@ export default function Home() {
                   </div>
                 </div>
                 <p className="text-xs sm:text-sm text-gray-400">
-                  {tournament?.start_date} - {tournament?.end_date}
+                  {tournament?.start_date
+                    ? formatDate(tournament.start_date)
+                    : 'Not set'}{' '}
+                  -{' '}
+                  {tournament?.end_date
+                    ? formatDate(tournament.end_date)
+                    : 'Not set'}
                 </p>
               </div>
               <span

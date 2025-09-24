@@ -305,6 +305,7 @@ export async function recordMatch(
       player2_goals,
       tournament_id,
       half_length,
+      completed: true,
     });
     return response.data;
   } catch (error) {
@@ -987,6 +988,7 @@ export interface Match {
   team2: string;
   date: string;
   half_length: number;
+  completed: boolean;
 }
 
 export interface Tournament {

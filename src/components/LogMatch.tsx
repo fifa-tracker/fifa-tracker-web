@@ -59,7 +59,7 @@ export default function LogMatch({
     // Don't allow submission if tournament is completed
     if (isTournamentCompleted) return;
 
-    // TODO: Implement match logging logic
+    // Record the match (now automatically marks it as completed)
     recordMatch(
       formData.player1_id,
       formData.player2_id,
