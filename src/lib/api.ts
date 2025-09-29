@@ -462,7 +462,7 @@ export async function deleteMatch(match_id: string): Promise<void> {
 
 export async function getPlayerStats(
   player_id: string
-): Promise<DetailedPlayerStats | null> {
+): Promise<UserDetailedStats | null> {
   try {
     debugLog('getPlayerStats called with player_id:', player_id);
     const axiosInstance = createAuthenticatedRequest();
@@ -936,6 +936,156 @@ export async function getAllUsersStats(): Promise<UserDetailedStats[]> {
   }
 }
 
+// Friend-related functions
+export async function sendFriendRequest(
+  friend_id: string
+): Promise<FriendResponse | null> {
+  try {
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.post('/user/send-friend-request', {
+      friend_id,
+    });
+    return response.data;
+  } catch (error) {
+    debugError('Error sending friend request:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 400) {
+        throw new Error(
+          'Cannot send friend request to yourself or to an existing friend.'
+        );
+      } else if (axiosError.response?.status === 404) {
+        throw new Error('User not found.');
+      } else if (axiosError.response?.status === 409) {
+        throw new Error('Friend request already sent or received.');
+      } else if (axiosError.response?.status === 401) {
+        throw new Error('Authentication required. Please log in again.');
+      } else {
+        const errorData = axiosError.response?.data as Record<string, unknown>;
+        throw new Error(
+          `Failed to send friend request: ${errorData?.detail || axiosError.message}`
+        );
+      }
+    }
+    throw new Error('Failed to send friend request. Please try again.');
+  }
+}
+
+export async function getFriendRequests(): Promise<FriendRequestsResponse> {
+  try {
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.get('/user/friend-requests');
+    return response.data;
+  } catch (error) {
+    debugError('Error fetching friend requests:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 401) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+    }
+    return { sent_requests: [], received_requests: [] };
+  }
+}
+
+export async function getFriends(): Promise<Friend[]> {
+  try {
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.get('/user/friends');
+    return response.data;
+  } catch (error) {
+    debugError('Error fetching friends:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 401) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+    }
+    return [];
+  }
+}
+
+export async function getRecentNonFriendOpponents(): Promise<
+  NonFriendPlayer[]
+> {
+  try {
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.get(
+      '/user/recent-non-friend-opponents'
+    );
+    return response.data;
+  } catch (error) {
+    debugError('Error fetching recent non-friend opponents:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 401) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+    }
+    return [];
+  }
+}
+
+export async function acceptFriendRequest(
+  friend_id: string
+): Promise<FriendResponse | null> {
+  try {
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.post('/user/accept-friend-request', {
+      friend_id,
+    });
+    return response.data;
+  } catch (error) {
+    debugError('Error accepting friend request:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 404) {
+        throw new Error('Friend request not found.');
+      } else if (axiosError.response?.status === 400) {
+        throw new Error('Cannot accept this friend request.');
+      } else if (axiosError.response?.status === 401) {
+        throw new Error('Authentication required. Please log in again.');
+      } else {
+        const errorData = axiosError.response?.data as Record<string, unknown>;
+        throw new Error(
+          `Failed to accept friend request: ${errorData?.detail || axiosError.message}`
+        );
+      }
+    }
+    throw new Error('Failed to accept friend request. Please try again.');
+  }
+}
+
+export async function rejectFriendRequest(
+  friend_id: string
+): Promise<FriendResponse | null> {
+  try {
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.post('/user/reject-friend-request', {
+      friend_id,
+    });
+    return response.data;
+  } catch (error) {
+    debugError('Error rejecting friend request:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 404) {
+        throw new Error('Friend request not found.');
+      } else if (axiosError.response?.status === 400) {
+        throw new Error('Cannot reject this friend request.');
+      } else if (axiosError.response?.status === 401) {
+        throw new Error('Authentication required. Please log in again.');
+      } else {
+        const errorData = axiosError.response?.data as Record<string, unknown>;
+        throw new Error(
+          `Failed to reject friend request: ${errorData?.detail || axiosError.message}`
+        );
+      }
+    }
+    throw new Error('Failed to reject friend request. Please try again.');
+  }
+}
+
 // Pagination interfaces
 export interface PaginatedResponse<T> {
   items: T[];
@@ -1085,4 +1235,45 @@ export interface UserDetailedStats {
   elo_rating: number;
   tournaments_played: number;
   tournament_ids: string[];
+}
+
+// Friend-related interfaces
+export interface FriendRequest {
+  friend_id: string;
+}
+
+export interface FriendResponse {
+  message: string;
+  success: boolean;
+}
+
+export interface NonFriendPlayer {
+  id: string;
+  username: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  full_name?: string | null;
+  friend_request_sent?: boolean;
+}
+
+export interface FriendRequestsResponse {
+  sent_requests: FriendRequestUser[];
+  received_requests: FriendRequestUser[];
+}
+
+export interface FriendRequestUser {
+  friend_id: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+}
+
+export interface Friend {
+  id: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+  total_matches?: number;
+  wins?: number;
+  elo_rating?: number;
 }

@@ -1,8 +1,24 @@
 'use client';
 
+import FriendRequestsTab from '@/components/FriendRequestsTab';
+import FriendsTab from '@/components/FriendsTab';
 import { ArrowLeftIcon, TrophyIcon, UserIcon } from '@/components/Icons';
+import ProfileTab from '@/components/ProfileTab';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { getCurrentUserStats, UserDetailedStats } from '@/lib/api';
+import SuggestedPlayersTab from '@/components/SuggestedPlayersTab';
+import {
+  acceptFriendRequest,
+  Friend,
+  FriendRequestsResponse,
+  getCurrentUserStats,
+  getFriendRequests,
+  getFriends,
+  getRecentNonFriendOpponents,
+  NonFriendPlayer,
+  rejectFriendRequest,
+  sendFriendRequest,
+  UserDetailedStats,
+} from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -12,67 +28,24 @@ export default function ProfilePage() {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userStats, setUserStats] = useState<UserDetailedStats | null>(null);
+  const [suggestedPlayers, setSuggestedPlayers] = useState<NonFriendPlayer[]>(
+    []
+  );
+  const [suggestedPlayersLoading, setSuggestedPlayersLoading] = useState(false);
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [friendsLoading, setFriendsLoading] = useState(false);
+  const [friendRequests, setFriendRequests] = useState<FriendRequestsResponse>({
+    sent_requests: [],
+    received_requests: [],
+  });
+  const [friendRequestsLoading, setFriendRequestsLoading] = useState(false);
+  const [sentFriendRequests, setSentFriendRequests] = useState<Set<string>>(
+    new Set()
+  );
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'profile' | 'friends'>('profile');
-
-  // Dummy friends data
-  const dummyFriends = [
-    {
-      id: 1,
-      name: 'Alex Johnson',
-      username: 'alex_j',
-      email: 'alex@example.com',
-      winRate: 0.65,
-      totalMatches: 45,
-      eloRating: 1350,
-      status: 'online',
-      lastActive: '2 minutes ago',
-    },
-    {
-      id: 2,
-      name: 'Sarah Chen',
-      username: 'sarah_c',
-      email: 'sarah@example.com',
-      winRate: 0.72,
-      totalMatches: 38,
-      eloRating: 1420,
-      status: 'online',
-      lastActive: '5 minutes ago',
-    },
-    {
-      id: 3,
-      name: 'Mike Rodriguez',
-      username: 'mike_r',
-      email: 'mike@example.com',
-      winRate: 0.58,
-      totalMatches: 52,
-      eloRating: 1280,
-      status: 'offline',
-      lastActive: '2 hours ago',
-    },
-    {
-      id: 4,
-      name: 'Emma Wilson',
-      username: 'emma_w',
-      email: 'emma@example.com',
-      winRate: 0.69,
-      totalMatches: 29,
-      eloRating: 1390,
-      status: 'online',
-      lastActive: '1 minute ago',
-    },
-    {
-      id: 5,
-      name: 'David Kim',
-      username: 'david_k',
-      email: 'david@example.com',
-      winRate: 0.61,
-      totalMatches: 67,
-      eloRating: 1310,
-      status: 'offline',
-      lastActive: '1 day ago',
-    },
-  ];
+  const [activeTab, setActiveTab] = useState<
+    'profile' | 'friends' | 'players-you-might-know' | 'friend-requests'
+  >('profile');
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -111,6 +84,111 @@ export default function ProfilePage() {
 
     fetchUserStats();
   }, [user, authLoading]);
+
+  // Fetch friends and suggested players on page load
+  useEffect(() => {
+    if (!authLoading && user?.id) {
+      fetchFriends();
+      fetchSuggestedPlayers();
+    }
+  }, [user, authLoading]);
+
+  const fetchSuggestedPlayers = async () => {
+    try {
+      setSuggestedPlayersLoading(true);
+      const players = await getRecentNonFriendOpponents();
+      setSuggestedPlayers(players);
+    } catch (error) {
+      console.error('Error fetching suggested players:', error);
+    } finally {
+      setSuggestedPlayersLoading(false);
+    }
+  };
+
+  const fetchFriends = async () => {
+    try {
+      setFriendsLoading(true);
+      const friendsList = await getFriends();
+      setFriends(friendsList);
+    } catch (error) {
+      console.error('Error fetching friends:', error);
+    } finally {
+      setFriendsLoading(false);
+    }
+  };
+
+  const fetchFriendRequests = async () => {
+    try {
+      setFriendRequestsLoading(true);
+      const requests = await getFriendRequests();
+      setFriendRequests(requests); // Store both sent and received requests
+    } catch (error) {
+      console.error('Error fetching friend requests:', error);
+    } finally {
+      setFriendRequestsLoading(false);
+    }
+  };
+
+  const handleAcceptFriendRequest = async (userId: string) => {
+    try {
+      await acceptFriendRequest(userId);
+      // Remove the accepted request from the received list
+      setFriendRequests(prev => ({
+        ...prev,
+        received_requests: (prev.received_requests || []).filter(
+          request => request.friend_id !== userId
+        ),
+      }));
+      alert('Friend request accepted!');
+    } catch (error) {
+      console.error('Error accepting friend request:', error);
+      // Show user-friendly error message
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('Failed to accept friend request. Please try again later.');
+      }
+    }
+  };
+
+  const handleRejectFriendRequest = async (userId: string) => {
+    try {
+      await rejectFriendRequest(userId);
+      // Remove the rejected request from the received list
+      setFriendRequests(prev => ({
+        ...prev,
+        received_requests: (prev.received_requests || []).filter(
+          request => request.friend_id !== userId
+        ),
+      }));
+      alert('Friend request rejected!');
+    } catch (error) {
+      console.error('Error rejecting friend request:', error);
+      // Show user-friendly error message
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('Failed to reject friend request. Please try again later.');
+      }
+    }
+  };
+
+  const handleSendFriendRequest = async (userId: string) => {
+    try {
+      await sendFriendRequest(userId);
+      // Add to sent requests set
+      setSentFriendRequests(prev => new Set(prev).add(userId));
+      alert('Friend request sent!');
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+      // Show user-friendly error message
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('Failed to send friend request. Please try again later.');
+      }
+    }
+  };
 
   return (
     <ProtectedRoute>
@@ -198,386 +276,94 @@ export default function ProfilePage() {
                   Profile
                 </button>
                 <button
-                  onClick={() => setActiveTab('friends')}
+                  onClick={() => {
+                    setActiveTab('friends');
+                    if (friends.length === 0) {
+                      fetchFriends();
+                    }
+                  }}
                   className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === 'friends'
                       ? 'border-blue-500 text-blue-400'
                       : 'border-transparent text-gray-400 hover:text-gray-300'
                   }`}
                 >
-                  Friends ({dummyFriends.length})
+                  Friends ({friends.length})
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab('players-you-might-know');
+                    if (suggestedPlayers && suggestedPlayers.length === 0) {
+                      fetchSuggestedPlayers();
+                    }
+                  }}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === 'players-you-might-know'
+                      ? 'border-blue-500 text-blue-400'
+                      : 'border-transparent text-gray-400 hover:text-gray-300'
+                  }`}
+                >
+                  Players You Might Know ({suggestedPlayers?.length || 0})
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab('friend-requests');
+                    if (
+                      (friendRequests.sent_requests?.length || 0) === 0 &&
+                      (friendRequests.received_requests?.length || 0) === 0
+                    ) {
+                      fetchFriendRequests();
+                    }
+                  }}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    activeTab === 'friend-requests'
+                      ? 'border-blue-500 text-blue-400'
+                      : 'border-transparent text-gray-400 hover:text-gray-300'
+                  }`}
+                >
+                  Friend Requests (
+                  {(friendRequests.sent_requests?.length || 0) +
+                    (friendRequests.received_requests?.length || 0)}
+                  )
                 </button>
               </nav>
             </div>
 
             {/* Tab Content */}
             {activeTab === 'profile' && (
-              <div className="space-y-6">
-                {/* Account Information */}
-                <div className="border-b border-gray-700 pb-6">
-                  <h3 className="text-lg font-semibold mb-4">
-                    Account Information
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-400 mb-1">
-                        Name
-                      </label>
-                      <p className="text-white">
-                        {user?.first_name || user?.username}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-400 mb-1">
-                        Username
-                      </label>
-                      <p className="text-white">@{user?.username || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-400 mb-1">
-                        Email
-                      </label>
-                      <p className="text-white">{user?.email}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Statistics */}
-                <div className="border-b border-gray-700 pb-6">
-                  <h3 className="text-lg font-semibold mb-4">
-                    Your Statistics
-                  </h3>
-                  {authLoading || loading ? (
-                    <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                      <p className="text-gray-400 mt-2">
-                        {authLoading
-                          ? 'Loading user data...'
-                          : 'Loading statistics...'}
-                      </p>
-                    </div>
-                  ) : userStats ? (
-                    <div className="space-y-6">
-                      {/* Main Stats Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                          <div className="text-2xl font-bold text-yellow-400">
-                            {userStats.total_matches || 0}
-                          </div>
-                          <div className="text-sm text-gray-400">
-                            Matches Played
-                          </div>
-                        </div>
-                        <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                          <div className="text-2xl font-bold text-green-400">
-                            {userStats.wins || 0}
-                          </div>
-                          <div className="text-sm text-gray-400">Wins</div>
-                        </div>
-                        <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                          <div className="text-2xl font-bold text-blue-400">
-                            {userStats.win_rate !== null &&
-                            userStats.win_rate !== undefined
-                              ? (userStats.win_rate * 100).toFixed(1)
-                              : userStats.total_matches > 0
-                                ? (
-                                    ((userStats.wins || 0) /
-                                      (userStats.total_matches || 1)) *
-                                    100
-                                  ).toFixed(1)
-                                : '0.0'}
-                            %
-                          </div>
-                          <div className="text-sm text-gray-400">Win Rate</div>
-                        </div>
-                      </div>
-
-                      {/* Additional Stats */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                          <div className="text-xl font-bold text-red-400">
-                            {userStats.losses || 0}
-                          </div>
-                          <div className="text-sm text-gray-400">Losses</div>
-                        </div>
-                        <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                          <div className="text-xl font-bold text-gray-400">
-                            {userStats.draws || 0}
-                          </div>
-                          <div className="text-sm text-gray-400">Draws</div>
-                        </div>
-                        <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                          <div className="text-xl font-bold text-purple-400">
-                            {userStats.points || 0}
-                          </div>
-                          <div className="text-sm text-gray-400">Points</div>
-                        </div>
-                        <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                          <div className="text-xl font-bold text-orange-400">
-                            {userStats.elo_rating || 1200}
-                          </div>
-                          <div className="text-sm text-gray-400">
-                            Elo Rating
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Goals Stats */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                          <div className="text-xl font-bold text-green-400">
-                            {userStats.total_goals_scored || 0}
-                          </div>
-                          <div className="text-sm text-gray-400">
-                            Goals Scored
-                          </div>
-                        </div>
-                        <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                          <div className="text-xl font-bold text-red-400">
-                            {userStats.total_goals_conceded || 0}
-                          </div>
-                          <div className="text-sm text-gray-400">
-                            Goals Conceded
-                          </div>
-                        </div>
-                        <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                          <div className="text-xl font-bold text-blue-400">
-                            {(userStats.total_goals_scored || 0) -
-                              (userStats.total_goals_conceded || 0)}
-                          </div>
-                          <div className="text-sm text-gray-400">
-                            Goal Difference
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Averages */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                          <div className="text-xl font-bold text-green-400">
-                            {(userStats.average_goals_scored || 0).toFixed(1)}
-                          </div>
-                          <div className="text-sm text-gray-400">
-                            Avg Goals Scored
-                          </div>
-                        </div>
-                        <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                          <div className="text-xl font-bold text-red-400">
-                            {(userStats.average_goals_conceded || 0).toFixed(1)}
-                          </div>
-                          <div className="text-sm text-gray-400">
-                            Avg Goals Conceded
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Tournament Stats */}
-                      <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                        <div className="text-xl font-bold text-yellow-400">
-                          {userStats.tournaments_played || 0}
-                        </div>
-                        <div className="text-sm text-gray-400">
-                          Tournaments Played
-                        </div>
-                      </div>
-
-                      {/* Head-to-Head Records */}
-                      {((userStats.highest_wins_against &&
-                        Object.keys(userStats.highest_wins_against).length >
-                          0) ||
-                        (userStats.highest_losses_against &&
-                          Object.keys(userStats.highest_losses_against).length >
-                            0)) && (
-                        <div className="space-y-4">
-                          <h4 className="text-md font-semibold">
-                            Head-to-Head Records
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {userStats.highest_wins_against &&
-                              Object.keys(userStats.highest_wins_against)
-                                .length > 0 && (
-                                <div className="bg-[#2d3748] rounded-lg p-4">
-                                  <div className="text-sm font-medium text-green-400 mb-2">
-                                    Most Wins Against
-                                  </div>
-                                  {Object.entries(
-                                    userStats.highest_wins_against
-                                  ).map(([player, wins]) => (
-                                    <div
-                                      key={player}
-                                      className="flex justify-between text-sm"
-                                    >
-                                      <span className="text-gray-300">
-                                        {player}
-                                      </span>
-                                      <span className="text-green-400 font-medium">
-                                        {wins || 0} wins
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            {userStats.highest_losses_against &&
-                              Object.keys(userStats.highest_losses_against)
-                                .length > 0 && (
-                                <div className="bg-[#2d3748] rounded-lg p-4">
-                                  <div className="text-sm font-medium text-red-400 mb-2">
-                                    Most Losses Against
-                                  </div>
-                                  {Object.entries(
-                                    userStats.highest_losses_against
-                                  ).map(([player, losses]) => (
-                                    <div
-                                      key={player}
-                                      className="flex justify-between text-sm"
-                                    >
-                                      <span className="text-gray-300">
-                                        {player}
-                                      </span>
-                                      <span className="text-red-400 font-medium">
-                                        {losses || 0} losses
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-gray-400">Failed to load statistics</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Actions */}
-                <div>
-                  <h3 className="text-lg font-semibold mb-4">Actions</h3>
-                  <div className="space-y-3">
-                    <button
-                      onClick={() => router.push('/profile/edit')}
-                      className="w-full md:w-auto px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
-                    >
-                      Edit Profile
-                    </button>
-                    <button
-                      onClick={() => router.push('/profile/delete')}
-                      className="w-full md:w-auto px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors ml-0 md:ml-3"
-                    >
-                      Delete Account
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <ProfileTab
+                user={user}
+                userStats={userStats}
+                authLoading={authLoading}
+                loading={loading}
+              />
             )}
 
             {/* Friends Tab Content */}
             {activeTab === 'friends' && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">Your Friends</h3>
-                  <button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors text-sm">
-                    Add Friend
-                  </button>
-                </div>
+              <FriendsTab friends={friends} friendsLoading={friendsLoading} />
+            )}
 
-                {/* Friends List */}
-                <div className="space-y-4">
-                  {dummyFriends.map(friend => (
-                    <div
-                      key={friend.id}
-                      className="bg-[#2d3748] rounded-lg p-4 hover:bg-[#374151] transition-colors"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="relative">
-                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                              <span className="text-white font-semibold text-lg">
-                                {friend.name
-                                  .split(' ')
-                                  .map(n => n[0])
-                                  .join('')}
-                              </span>
-                            </div>
-                            <div
-                              className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-[#2d3748] ${
-                                friend.status === 'online'
-                                  ? 'bg-green-500'
-                                  : 'bg-gray-500'
-                              }`}
-                            ></div>
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-white">
-                              {friend.name}
-                            </h4>
-                            <p className="text-gray-400 text-sm">
-                              @{friend.username}
-                            </p>
-                            <p className="text-gray-500 text-xs">
-                              {friend.status === 'online'
-                                ? 'Online'
-                                : `Last active ${friend.lastActive}`}
-                            </p>
-                          </div>
-                        </div>
+            {/* Players You Might Know Tab Content */}
+            {activeTab === 'players-you-might-know' && (
+              <SuggestedPlayersTab
+                suggestedPlayers={suggestedPlayers}
+                suggestedPlayersLoading={suggestedPlayersLoading}
+                sentFriendRequests={sentFriendRequests}
+                onRefresh={fetchSuggestedPlayers}
+                onSendFriendRequest={handleSendFriendRequest}
+              />
+            )}
 
-                        <div className="flex items-center gap-6">
-                          <div className="text-center">
-                            <div className="text-lg font-bold text-green-400">
-                              {(friend.winRate * 100).toFixed(1)}%
-                            </div>
-                            <div className="text-xs text-gray-400">
-                              Win Rate
-                            </div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-lg font-bold text-yellow-400">
-                              {friend.totalMatches}
-                            </div>
-                            <div className="text-xs text-gray-400">Matches</div>
-                          </div>
-                          <div className="text-center">
-                            <div className="text-lg font-bold text-blue-400">
-                              {friend.eloRating}
-                            </div>
-                            <div className="text-xs text-gray-400">Elo</div>
-                          </div>
-                          <div className="flex gap-2">
-                            <button className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm transition-colors">
-                              Challenge
-                            </button>
-                            <button className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white rounded text-sm transition-colors">
-                              View Stats
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Empty State (if no friends) */}
-                {dummyFriends.length === 0 && (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <UserIcon className="w-8 h-8 text-gray-400" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-300 mb-2">
-                      No Friends Yet
-                    </h3>
-                    <p className="text-gray-400 mb-4">
-                      Add friends to challenge them and track your head-to-head
-                      records!
-                    </p>
-                    <button className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors">
-                      Add Your First Friend
-                    </button>
-                  </div>
-                )}
-              </div>
+            {/* Friend Requests Tab Content */}
+            {activeTab === 'friend-requests' && (
+              <FriendRequestsTab
+                friendRequests={friendRequests}
+                friendRequestsLoading={friendRequestsLoading}
+                onRefresh={fetchFriendRequests}
+                onAcceptFriendRequest={handleAcceptFriendRequest}
+                onRejectFriendRequest={handleRejectFriendRequest}
+              />
             )}
           </div>
         </div>
