@@ -341,7 +341,11 @@ export default function ProfilePage() {
 
             {/* Friends Tab Content */}
             {activeTab === 'friends' && (
-              <FriendsTab friends={friends} friendsLoading={friendsLoading} />
+              <FriendsTab
+                friends={friends}
+                friendsLoading={friendsLoading}
+                currentUserId={user?.id || ''}
+              />
             )}
 
             {/* Players You Might Know Tab Content */}

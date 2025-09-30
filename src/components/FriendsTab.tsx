@@ -1,17 +1,19 @@
 'use client';
 
-import { UserIcon } from '@/components/Icons';
+import { ChartBarIcon, UserIcon } from '@/components/Icons';
 import { Friend } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
 interface FriendsTabProps {
   friends: Friend[];
   friendsLoading: boolean;
+  currentUserId: string;
 }
 
 export default function FriendsTab({
   friends,
   friendsLoading,
+  currentUserId: _currentUserId,
 }: FriendsTabProps) {
   const router = useRouter();
 
@@ -75,16 +77,22 @@ export default function FriendsTab({
                   </div>
                   <div className="text-center">
                     <div className="text-lg font-bold text-green-400">
-                      {friend.wins || 0}
+                      {friend.total_matches && friend.total_matches > 0
+                        ? `${(((friend.wins || 0) / friend.total_matches) * 100).toFixed(1)}%`
+                        : '0%'}
                     </div>
-                    <div className="text-xs text-gray-400">Wins</div>
+                    <div className="text-xs text-gray-400">Win Rate</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-blue-400">
-                      {friend.elo_rating || 1200}
-                    </div>
-                    <div className="text-xs text-gray-400">Elo</div>
-                  </div>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      router.push(`/head-to-head/${friend.id}`);
+                    }}
+                    className="p-2 bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors"
+                    title="View Head-to-Head Stats"
+                  >
+                    <ChartBarIcon className="w-5 h-5 text-white" />
+                  </button>
                 </div>
               </div>
             </div>
