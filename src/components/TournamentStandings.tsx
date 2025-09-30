@@ -1,4 +1,4 @@
-import { TrophyIcon } from '@/components/Icons';
+import { DrawIcon, LossIcon, TrophyIcon, WinIcon } from '@/components/Icons';
 import { PlayerStats } from '@/lib/api';
 
 interface TournamentStandingsProps {
@@ -122,7 +122,7 @@ export default function TournamentStandings({
                         return (
                           <div
                             key={matchIndex}
-                            className="w-6 h-6 rounded-full bg-gray-600 border border-gray-500"
+                            className="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-gray-600 border border-gray-500"
                           />
                         );
                       }
@@ -131,31 +131,25 @@ export default function TournamentStandings({
                         switch (result) {
                           case 'W':
                             return (
-                              <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center p-1">
-                                <span className="text-white text-sm font-bold">
-                                  W
-                                </span>
+                              <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-green-500 flex items-center justify-center">
+                                <WinIcon className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                               </div>
                             );
                           case 'L':
                             return (
-                              <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center p-1">
-                                <span className="text-white text-sm font-bold">
-                                  L
-                                </span>
+                              <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-red-500 flex items-center justify-center">
+                                <LossIcon className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                               </div>
                             );
                           case 'D':
                             return (
-                              <div className="w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center p-1">
-                                <span className="text-white text-sm font-bold">
-                                  D
-                                </span>
+                              <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-yellow-500 flex items-center justify-center">
+                                <DrawIcon className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                               </div>
                             );
                           default:
                             return (
-                              <div className="w-6 h-6 rounded-full bg-gray-600 border border-gray-500" />
+                              <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-gray-600 border border-gray-500" />
                             );
                         }
                       };
