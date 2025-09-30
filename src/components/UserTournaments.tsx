@@ -1,6 +1,8 @@
 import {
   addPlayerToTournament,
   deleteTournament,
+  Friend,
+  getFriends,
   getPlayers,
   getTournamentPlayers,
   getTournaments,
@@ -48,6 +50,7 @@ export default function UserTournaments({
     ConfirmationToast[]
   >([]);
   const [allPlayers, setAllPlayers] = useState<User[]>([]);
+  const [friends, setFriends] = useState<Friend[]>([]);
   const [editForm, setEditForm] = useState({
     name: '',
     description: '',
@@ -95,6 +98,7 @@ export default function UserTournaments({
   useEffect(() => {
     fetchTournaments();
     fetchAllPlayers();
+    fetchFriends();
   }, []);
 
   const fetchTournaments = async () => {
@@ -132,6 +136,15 @@ export default function UserTournaments({
       setAllPlayers(players);
     } catch (error) {
       console.error('Error fetching players:', error);
+    }
+  };
+
+  const fetchFriends = async () => {
+    try {
+      const friendsList = await getFriends();
+      setFriends(friendsList);
+    } catch (error) {
+      console.error('Error fetching friends:', error);
     }
   };
 
@@ -292,11 +305,13 @@ export default function UserTournaments({
   const getAvailablePlayersForTournament = (
     tournament: TournamentWithPlayers
   ) => {
-    if (!tournament.players) return allPlayers;
-    return allPlayers.filter(
-      player =>
+    if (!tournament.players) return friends;
+
+    // Filter friends who are not already in the tournament
+    return friends.filter(
+      friend =>
         !tournament.players!.some(
-          tournamentPlayer => tournamentPlayer.id === player.id
+          tournamentPlayer => tournamentPlayer.id === friend.id
         )
     );
   };
@@ -476,9 +491,9 @@ export default function UserTournaments({
                             <CustomDropdown
                               options={getAvailablePlayersForTournament(
                                 tournament
-                              ).map(player => ({
-                                value: player.id,
-                                label: player.first_name || player.username,
+                              ).map(friend => ({
+                                value: friend.id,
+                                label: friend.username,
                               }))}
                               value=""
                               onChange={playerId => {
@@ -497,7 +512,7 @@ export default function UserTournaments({
                         {getAvailablePlayersForTournament(tournament).length ===
                           0 && (
                           <p className="text-gray-500 text-sm mt-1">
-                            All players are already in this tournament
+                            All friends are already in this tournament
                           </p>
                         )}
                       </div>

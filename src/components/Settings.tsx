@@ -1,4 +1,10 @@
-import { createTournament, getPlayers, User } from '@/lib/api';
+import {
+  createTournament,
+  Friend,
+  getFriends,
+  getPlayers,
+  User,
+} from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useEffect, useRef, useState } from 'react';
 import UserTournaments from './UserTournaments';
@@ -13,6 +19,7 @@ export default function Settings({ onTournamentCreated }: SettingsProps) {
   const [description, setDescription] = useState('');
   const [player_ids, setPlayer_ids] = useState<string[]>([]);
   const [allPlayers, setAllPlayers] = useState<User[]>([]);
+  const [friends, setFriends] = useState<Friend[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedPlayers, setSelectedPlayers] = useState<User[]>([]);
@@ -28,7 +35,16 @@ export default function Settings({ onTournamentCreated }: SettingsProps) {
         console.error('Error fetching players:', error);
       }
     };
+    const fetchFriends = async () => {
+      try {
+        const friendsList = await getFriends();
+        setFriends(friendsList);
+      } catch (error) {
+        console.error('Error fetching friends:', error);
+      }
+    };
     fetchPlayers();
+    fetchFriends();
   }, []);
 
   // Automatically add current user to selected players when component mounts
@@ -60,23 +76,33 @@ export default function Settings({ onTournamentCreated }: SettingsProps) {
     };
   }, []);
 
-  const filteredPlayers = allPlayers.filter(
-    player =>
-      (player.first_name || player.username) &&
-      (player.first_name || player.username)!
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) &&
-      !selectedPlayers.some(selected => selected.id === player.id) &&
-      !(user && player.id === user.id) // Exclude current user from dropdown
-  );
+  const filteredPlayers = friends.filter(friend => {
+    const searchLower = searchTerm.toLowerCase();
+    const firstName = friend.first_name?.toLowerCase() || '';
+    const username = friend.username?.toLowerCase() || '';
 
-  const handlePlayerSelect = (player: User) => {
+    return (
+      (firstName.includes(searchLower) || username.includes(searchLower)) &&
+      !selectedPlayers.some(selected => selected.id === friend.id) &&
+      !(user && friend.id === user.id) // Exclude current user from dropdown
+    );
+  });
+
+  const handlePlayerSelect = (friend: Friend) => {
     // Prevent adding the current user twice
-    if (user && player.id === user.id) {
+    if (user && friend.id === user.id) {
       return;
     }
-    setSelectedPlayers(prev => [...prev, player]);
-    setPlayer_ids(prev => [...prev, player.id]);
+    // Convert friend to user format for selectedPlayers
+    const userFriend: User = {
+      id: friend.id,
+      email: '', // Friends don't have email in the Friend interface
+      username: friend.username,
+      first_name: friend.first_name,
+      last_name: friend.last_name,
+    };
+    setSelectedPlayers(prev => [...prev, userFriend]);
+    setPlayer_ids(prev => [...prev, friend.id]);
     setSearchTerm('');
     setIsDropdownOpen(false);
   };
@@ -205,7 +231,7 @@ export default function Settings({ onTournamentCreated }: SettingsProps) {
 
               <div className="relative" ref={dropdownRef}>
                 <label className="block text-sm font-medium mb-2">
-                  Select Players
+                  Select Friends
                 </label>
                 <p className="text-xs text-gray-400 mb-2">
                   You will automatically be added as a participant in this
@@ -214,7 +240,7 @@ export default function Settings({ onTournamentCreated }: SettingsProps) {
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="Search players..."
+                    placeholder="Search friends by name or username..."
                     className="w-full bg-[#2d3748] border border-gray-600 rounded-lg px-3 py-2 text-white"
                     value={searchTerm}
                     onChange={e => {
@@ -227,20 +253,20 @@ export default function Settings({ onTournamentCreated }: SettingsProps) {
                   {isDropdownOpen && (
                     <div className="absolute z-10 w-full mt-1 bg-[#2d3748] border border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                       {filteredPlayers.length > 0 ? (
-                        filteredPlayers.map(player => (
+                        filteredPlayers.map(friend => (
                           <div
-                            key={player.id}
+                            key={friend.id}
                             className="px-3 py-2 hover:bg-[#4a5568] cursor-pointer text-white"
-                            onClick={() => handlePlayerSelect(player)}
+                            onClick={() => handlePlayerSelect(friend)}
                           >
-                            {player.first_name || player.username}
+                            {friend.username}
                           </div>
                         ))
                       ) : (
                         <div className="px-3 py-2 text-gray-400 text-sm">
                           {searchTerm
-                            ? 'No players found'
-                            : 'Type to search players...'}
+                            ? 'No friends found matching your search'
+                            : 'Type to search friends by name or username...'}
                         </div>
                       )}
                     </div>
@@ -250,7 +276,7 @@ export default function Settings({ onTournamentCreated }: SettingsProps) {
                 {selectedPlayers.length > 0 && (
                   <div className="mt-3">
                     <label className="block text-sm font-medium mb-2">
-                      Selected Players
+                      Selected Friends
                     </label>
                     <div className="flex flex-wrap gap-2">
                       {selectedPlayers.map(player => {
