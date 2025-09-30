@@ -1243,6 +1243,19 @@ export interface UserDetailedStats {
   elo_rating: number;
   tournaments_played: number;
   tournament_ids: string[];
+  last_5_teams: string[];
+  last_5_matches: {
+    date: string;
+    player1_goals: number;
+    player2_goals: number;
+    tournament_name: string;
+    team1: string;
+    team2: string;
+    opponent_id: string;
+    opponent_username: string;
+    opponent_first_name: string;
+    opponent_last_name: string;
+  }[];
 }
 
 // Friend-related interfaces

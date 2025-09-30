@@ -222,6 +222,111 @@ export default function ProfileTab({
                 </div>
               </div>
             )}
+
+            {/* Last 5 Teams */}
+            {userStats.last_5_teams && userStats.last_5_teams.length > 0 && (
+              <div className="space-y-4">
+                <h4 className="text-md font-semibold">Recent Teams</h4>
+                <div className="bg-[#2d3748] rounded-lg p-4">
+                  <div className="flex flex-wrap gap-2">
+                    {userStats.last_5_teams.map((team, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm"
+                      >
+                        {team}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Last 5 Matches */}
+            {userStats.last_5_matches &&
+              userStats.last_5_matches.length > 0 && (
+                <div className="space-y-4">
+                  <h4 className="text-md font-semibold">Recent Matches</h4>
+                  <div className="space-y-3">
+                    {userStats.last_5_matches.map((match, index) => {
+                      const matchDate = new Date(match.date);
+                      const formattedDate = matchDate.toLocaleDateString(
+                        'en-US',
+                        {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        }
+                      );
+                      const formattedTime = matchDate.toLocaleTimeString(
+                        'en-US',
+                        {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        }
+                      );
+
+                      // Determine match result for styling
+                      const isWin = match.player1_goals > match.player2_goals;
+                      const isDraw =
+                        match.player1_goals === match.player2_goals;
+
+                      return (
+                        <div
+                          key={index}
+                          className={`bg-[#2d3748] rounded-lg p-4 border-l-4 ${
+                            isWin
+                              ? 'border-green-500'
+                              : isDraw
+                                ? 'border-yellow-500'
+                                : 'border-red-500'
+                          }`}
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-sm font-medium text-gray-300">
+                                  {match.tournament_name}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {formattedDate} at {formattedTime}
+                                </span>
+                              </div>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-sm text-gray-300">
+                                    You ({match.team1})
+                                  </span>
+                                  <span className="text-lg font-bold text-white">
+                                    {match.player1_goals} -{' '}
+                                    {match.player2_goals}
+                                  </span>
+                                  <span className="text-sm text-gray-300">
+                                    {match.opponent_username} ({match.team2})
+                                  </span>
+                                </div>
+                                <div className="text-xs">
+                                  <span
+                                    className={`px-2 py-1 rounded-full ${
+                                      isWin
+                                        ? 'bg-green-500/20 text-green-300'
+                                        : isDraw
+                                          ? 'bg-yellow-500/20 text-yellow-300'
+                                          : 'bg-red-500/20 text-red-300'
+                                    }`}
+                                  >
+                                    {isWin ? 'W' : isDraw ? 'D' : 'L'}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
           </div>
         ) : (
           <div className="text-center py-8">
