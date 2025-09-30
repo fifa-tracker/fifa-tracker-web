@@ -24,11 +24,17 @@ interface HeadToHeadStats {
   player2_avg_goals: number;
 }
 
-export default function HeadToHeadPage({
+export default async function HeadToHeadPage({
   params,
 }: {
-  params: { playerId: string };
+  params: Promise<{ playerId: string }>;
 }) {
+  const resolvedParams = await params;
+
+  return <HeadToHeadContent playerId={resolvedParams.playerId} />;
+}
+
+function HeadToHeadContent({ playerId }: { playerId: string }) {
   const router = useRouter();
   const { user } = useAuth();
   const [stats, setStats] = useState<HeadToHeadStats | null>(null);
@@ -36,13 +42,13 @@ export default function HeadToHeadPage({
 
   useEffect(() => {
     const fetchHeadToHead = async () => {
-      if (!user?.id || !params.playerId) {
+      if (!user?.id || !playerId) {
         return;
       }
 
       try {
         setLoading(true);
-        const data = await getHeadToHead(user.id, params.playerId);
+        const data = await getHeadToHead(user.id, playerId);
         setStats(data);
       } catch (error) {
         console.error('Error fetching head-to-head stats:', error);
@@ -52,7 +58,7 @@ export default function HeadToHeadPage({
     };
 
     fetchHeadToHead();
-  }, [user?.id, params.playerId]);
+  }, [user?.id, playerId]);
 
   return (
     <ProtectedRoute>
