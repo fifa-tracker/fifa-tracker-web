@@ -264,10 +264,10 @@ export default function ProfilePage() {
 
             {/* Tab Navigation */}
             <div className="border-b border-gray-700 mb-6">
-              <nav className="flex space-x-8">
+              <nav className="flex space-x-2 sm:space-x-8 overflow-x-auto scrollbar-hide">
                 <button
                   onClick={() => setActiveTab('profile')}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  className={`py-2 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap flex-shrink-0 ${
                     activeTab === 'profile'
                       ? 'border-blue-500 text-blue-400'
                       : 'border-transparent text-gray-400 hover:text-gray-300'
@@ -282,7 +282,7 @@ export default function ProfilePage() {
                       fetchFriends();
                     }
                   }}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  className={`py-2 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap flex-shrink-0 ${
                     activeTab === 'friends'
                       ? 'border-blue-500 text-blue-400'
                       : 'border-transparent text-gray-400 hover:text-gray-300'
@@ -297,13 +297,17 @@ export default function ProfilePage() {
                       fetchSuggestedPlayers();
                     }
                   }}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  className={`py-2 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap flex-shrink-0 ${
                     activeTab === 'players-you-might-know'
                       ? 'border-blue-500 text-blue-400'
                       : 'border-transparent text-gray-400 hover:text-gray-300'
                   }`}
                 >
-                  Players You Might Know ({suggestedPlayers?.length || 0})
+                  <span className="hidden sm:inline">
+                    Players You Might Know
+                  </span>
+                  <span className="sm:hidden">Players</span> (
+                  {suggestedPlayers?.length || 0})
                 </button>
                 <button
                   onClick={() => {
@@ -315,13 +319,14 @@ export default function ProfilePage() {
                       fetchFriendRequests();
                     }
                   }}
-                  className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  className={`py-2 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors whitespace-nowrap flex-shrink-0 ${
                     activeTab === 'friend-requests'
                       ? 'border-blue-500 text-blue-400'
                       : 'border-transparent text-gray-400 hover:text-gray-300'
                   }`}
                 >
-                  Friend Requests (
+                  <span className="hidden sm:inline">Friend Requests</span>
+                  <span className="sm:hidden">Requests</span> (
                   {(friendRequests.sent_requests?.length || 0) +
                     (friendRequests.received_requests?.length || 0)}
                   )

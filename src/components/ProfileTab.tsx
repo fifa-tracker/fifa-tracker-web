@@ -58,21 +58,23 @@ export default function ProfileTab({
         ) : userStats ? (
           <div className="space-y-6">
             {/* Main Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-yellow-400">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+              <div className="bg-[#2d3748] rounded-lg p-3 md:p-4 text-center">
+                <div className="text-xl md:text-2xl font-bold text-yellow-400">
                   {userStats.total_matches || 0}
                 </div>
-                <div className="text-sm text-gray-400">Matches Played</div>
+                <div className="text-xs md:text-sm text-gray-400">
+                  Matches Played
+                </div>
               </div>
-              <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-green-400">
+              <div className="bg-[#2d3748] rounded-lg p-3 md:p-4 text-center">
+                <div className="text-xl md:text-2xl font-bold text-green-400">
                   {userStats.wins || 0}
                 </div>
-                <div className="text-sm text-gray-400">Wins</div>
+                <div className="text-xs md:text-sm text-gray-400">Wins</div>
               </div>
-              <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                <div className="text-2xl font-bold text-blue-400">
+              <div className="bg-[#2d3748] rounded-lg p-3 md:p-4 text-center col-span-2 md:col-span-1">
+                <div className="text-xl md:text-2xl font-bold text-blue-400">
                   {userStats.win_rate !== null &&
                   userStats.win_rate !== undefined
                     ? (userStats.win_rate * 100).toFixed(1)
@@ -85,83 +87,97 @@ export default function ProfileTab({
                       : '0.0'}
                   %
                 </div>
-                <div className="text-sm text-gray-400">Win Rate</div>
+                <div className="text-xs md:text-sm text-gray-400">Win Rate</div>
               </div>
             </div>
 
             {/* Additional Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                <div className="text-xl font-bold text-red-400">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+              <div className="bg-[#2d3748] rounded-lg p-3 md:p-4 text-center">
+                <div className="text-lg md:text-xl font-bold text-red-400">
                   {userStats.losses || 0}
                 </div>
-                <div className="text-sm text-gray-400">Losses</div>
+                <div className="text-xs md:text-sm text-gray-400">Losses</div>
               </div>
-              <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                <div className="text-xl font-bold text-gray-400">
+              <div className="bg-[#2d3748] rounded-lg p-3 md:p-4 text-center">
+                <div className="text-lg md:text-xl font-bold text-gray-400">
                   {userStats.draws || 0}
                 </div>
-                <div className="text-sm text-gray-400">Draws</div>
+                <div className="text-xs md:text-sm text-gray-400">Draws</div>
               </div>
-              <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                <div className="text-xl font-bold text-purple-400">
+              <div className="bg-[#2d3748] rounded-lg p-3 md:p-4 text-center">
+                <div className="text-lg md:text-xl font-bold text-purple-400">
                   {userStats.points || 0}
                 </div>
-                <div className="text-sm text-gray-400">Points</div>
+                <div className="text-xs md:text-sm text-gray-400">Points</div>
               </div>
-              <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                <div className="text-xl font-bold text-orange-400">
+              <div className="bg-[#2d3748] rounded-lg p-3 md:p-4 text-center">
+                <div className="text-lg md:text-xl font-bold text-orange-400">
                   {userStats.elo_rating || 1200}
                 </div>
-                <div className="text-sm text-gray-400">Elo Rating</div>
+                <div className="text-xs md:text-sm text-gray-400">
+                  Elo Rating
+                </div>
               </div>
             </div>
 
             {/* Goals Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                <div className="text-xl font-bold text-green-400">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+              <div className="bg-[#2d3748] rounded-lg p-3 md:p-4 text-center">
+                <div className="text-lg md:text-xl font-bold text-green-400">
                   {userStats.total_goals_scored || 0}
                 </div>
-                <div className="text-sm text-gray-400">Goals Scored</div>
+                <div className="text-xs md:text-sm text-gray-400">
+                  Goals Scored
+                </div>
               </div>
-              <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                <div className="text-xl font-bold text-red-400">
+              <div className="bg-[#2d3748] rounded-lg p-3 md:p-4 text-center">
+                <div className="text-lg md:text-xl font-bold text-red-400">
                   {userStats.total_goals_conceded || 0}
                 </div>
-                <div className="text-sm text-gray-400">Goals Conceded</div>
+                <div className="text-xs md:text-sm text-gray-400">
+                  Goals Conceded
+                </div>
               </div>
-              <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                <div className="text-xl font-bold text-blue-400">
+              <div className="bg-[#2d3748] rounded-lg p-3 md:p-4 text-center col-span-2 md:col-span-1">
+                <div className="text-lg md:text-xl font-bold text-blue-400">
                   {(userStats.total_goals_scored || 0) -
                     (userStats.total_goals_conceded || 0)}
                 </div>
-                <div className="text-sm text-gray-400">Goal Difference</div>
+                <div className="text-xs md:text-sm text-gray-400">
+                  Goal Difference
+                </div>
               </div>
             </div>
 
             {/* Averages */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                <div className="text-xl font-bold text-green-400">
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-3 md:gap-4">
+              <div className="bg-[#2d3748] rounded-lg p-3 md:p-4 text-center">
+                <div className="text-lg md:text-xl font-bold text-green-400">
                   {(userStats.average_goals_scored || 0).toFixed(1)}
                 </div>
-                <div className="text-sm text-gray-400">Avg Goals Scored</div>
+                <div className="text-xs md:text-sm text-gray-400">
+                  Avg Goals Scored
+                </div>
               </div>
-              <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-                <div className="text-xl font-bold text-red-400">
+              <div className="bg-[#2d3748] rounded-lg p-3 md:p-4 text-center">
+                <div className="text-lg md:text-xl font-bold text-red-400">
                   {(userStats.average_goals_conceded || 0).toFixed(1)}
                 </div>
-                <div className="text-sm text-gray-400">Avg Goals Conceded</div>
+                <div className="text-xs md:text-sm text-gray-400">
+                  Avg Goals Conceded
+                </div>
               </div>
             </div>
 
             {/* Tournament Stats */}
-            <div className="bg-[#2d3748] rounded-lg p-4 text-center">
-              <div className="text-xl font-bold text-yellow-400">
+            <div className="bg-[#2d3748] rounded-lg p-3 md:p-4 text-center">
+              <div className="text-lg md:text-xl font-bold text-yellow-400">
                 {userStats.tournaments_played || 0}
               </div>
-              <div className="text-sm text-gray-400">Tournaments Played</div>
+              <div className="text-xs md:text-sm text-gray-400">
+                Tournaments Played
+              </div>
             </div>
 
             {/* Head-to-Head Records */}
@@ -173,7 +189,7 @@ export default function ProfileTab({
                 Object.keys(userStats.highest_losses_against).length > 0)) && (
               <div className="space-y-4">
                 <h4 className="text-md font-semibold">Head-to-Head Records</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                   {userStats.highest_wins_against &&
                     userStats.highest_wins_against !== null &&
                     Object.keys(userStats.highest_wins_against).length > 0 && (
@@ -227,12 +243,12 @@ export default function ProfileTab({
             {userStats.last_5_teams && userStats.last_5_teams.length > 0 && (
               <div className="space-y-4">
                 <h4 className="text-md font-semibold">Recent Teams</h4>
-                <div className="bg-[#2d3748] rounded-lg p-4">
+                <div className="bg-[#2d3748] rounded-lg p-3 md:p-4">
                   <div className="flex flex-wrap gap-2">
                     {userStats.last_5_teams.map((team, index) => (
                       <span
                         key={index}
-                        className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm"
+                        className="px-2 md:px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-xs md:text-sm"
                       >
                         {team}
                       </span>
@@ -303,11 +319,11 @@ export default function ProfileTab({
                       return (
                         <div
                           key={index}
-                          className={`bg-[#2d3748] rounded-lg p-4 border-l-4 ${resultStyling.border}`}
+                          className={`bg-[#2d3748] rounded-lg p-3 md:p-4 border-l-4 ${resultStyling.border}`}
                         >
-                          <div className="flex justify-between items-start mb-2">
+                          <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-2 space-y-2 md:space-y-0">
                             <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
+                              <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 mb-2">
                                 <span className="text-sm font-medium text-gray-300">
                                   {match.tournament_name}
                                 </span>
@@ -315,20 +331,29 @@ export default function ProfileTab({
                                   {formattedDate} at {formattedTime}
                                 </span>
                               </div>
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                  <span className="text-sm text-gray-300">
+                              <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
+                                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+                                  <span className="text-xs md:text-sm text-gray-300">
                                     You ({match.team1})
                                   </span>
-                                  <span className="text-lg font-bold text-white">
-                                    {match.current_player_goals} -{' '}
-                                    {match.opponent_goals}
-                                  </span>
-                                  <span className="text-sm text-gray-300">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-lg font-bold text-white">
+                                      {match.current_player_goals} -{' '}
+                                      {match.opponent_goals}
+                                    </span>
+                                    <div className="md:hidden">
+                                      <span
+                                        className={`px-2 py-1 rounded-full text-sm font-medium ${resultStyling.badge}`}
+                                      >
+                                        {resultStyling.text}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <span className="text-xs md:text-sm text-gray-300">
                                     {match.opponent_username} ({match.team2})
                                   </span>
                                 </div>
-                                <div className="text-xs">
+                                <div className="hidden md:block text-xs">
                                   <span
                                     className={`px-2 py-1 rounded-full ${resultStyling.badge}`}
                                   >
