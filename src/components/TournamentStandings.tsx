@@ -28,6 +28,7 @@ export default function TournamentStandings({
             <col className="w-8 sm:w-10" />
             <col className="w-10 sm:w-12" />
             <col className="w-10 sm:w-12" />
+            <col className="w-20 sm:w-24" />
           </colgroup>
           <thead>
             <tr className="border-b border-gray-700">
@@ -60,6 +61,9 @@ export default function TournamentStandings({
               </th>
               <th className="text-center py-3 px-1 font-medium text-gray-300 text-xs sm:text-sm">
                 Pts
+              </th>
+              <th className="text-center py-3 px-1 font-medium text-gray-300 text-xs sm:text-sm">
+                Last 5
               </th>
             </tr>
           </thead>
@@ -110,6 +114,55 @@ export default function TournamentStandings({
                 </td>
                 <td className="py-3 px-1 text-center font-bold text-xs sm:text-sm">
                   {player.points}
+                </td>
+                <td className="py-3 px-1 text-center">
+                  <div className="flex justify-center gap-2">
+                    {player.last_5_matches?.map((result, matchIndex) => {
+                      if (result === '-') {
+                        return (
+                          <div
+                            key={matchIndex}
+                            className="w-6 h-6 rounded-full bg-gray-600 border border-gray-500"
+                          />
+                        );
+                      }
+
+                      const getMatchIcon = (result: string) => {
+                        switch (result) {
+                          case 'W':
+                            return (
+                              <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center p-1">
+                                <span className="text-white text-sm font-bold">
+                                  W
+                                </span>
+                              </div>
+                            );
+                          case 'L':
+                            return (
+                              <div className="w-6 h-6 rounded-full bg-red-500 flex items-center justify-center p-1">
+                                <span className="text-white text-sm font-bold">
+                                  L
+                                </span>
+                              </div>
+                            );
+                          case 'D':
+                            return (
+                              <div className="w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center p-1">
+                                <span className="text-white text-sm font-bold">
+                                  D
+                                </span>
+                              </div>
+                            );
+                          default:
+                            return (
+                              <div className="w-6 h-6 rounded-full bg-gray-600 border border-gray-500" />
+                            );
+                        }
+                      };
+
+                      return <div key={matchIndex}>{getMatchIcon(result)}</div>;
+                    })}
+                  </div>
                 </td>
               </tr>
             ))}

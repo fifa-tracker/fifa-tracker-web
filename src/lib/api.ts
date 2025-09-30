@@ -1184,6 +1184,7 @@ export interface PlayerStats {
   losses: number;
   draws: number;
   points: number;
+  last_5_matches: string[];
 }
 
 export interface DetailedPlayerStats {
@@ -1255,6 +1256,11 @@ export interface UserDetailedStats {
     opponent_username: string;
     opponent_first_name: string;
     opponent_last_name: string;
+    current_player_id: string;
+    current_player_username: string;
+    current_player_goals: number;
+    opponent_goals: number;
+    match_result: 'win' | 'loss' | 'draw';
   }[];
 }
 

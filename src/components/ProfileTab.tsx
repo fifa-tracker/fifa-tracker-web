@@ -266,21 +266,44 @@ export default function ProfileTab({
                         }
                       );
 
-                      // Determine match result for styling
-                      const isWin = match.player1_goals > match.player2_goals;
-                      const isDraw =
-                        match.player1_goals === match.player2_goals;
+                      // Determine match result styling based on match_result field
+                      const getResultStyling = (result: string) => {
+                        switch (result) {
+                          case 'win':
+                            return {
+                              border: 'border-green-500',
+                              badge: 'bg-green-500/20 text-green-300',
+                              text: 'W',
+                            };
+                          case 'draw':
+                            return {
+                              border: 'border-yellow-500',
+                              badge: 'bg-yellow-500/20 text-yellow-300',
+                              text: 'D',
+                            };
+                          case 'loss':
+                            return {
+                              border: 'border-red-500',
+                              badge: 'bg-red-500/20 text-red-300',
+                              text: 'L',
+                            };
+                          default:
+                            return {
+                              border: 'border-gray-500',
+                              badge: 'bg-gray-500/20 text-gray-300',
+                              text: '?',
+                            };
+                        }
+                      };
+
+                      const resultStyling = getResultStyling(
+                        match.match_result
+                      );
 
                       return (
                         <div
                           key={index}
-                          className={`bg-[#2d3748] rounded-lg p-4 border-l-4 ${
-                            isWin
-                              ? 'border-green-500'
-                              : isDraw
-                                ? 'border-yellow-500'
-                                : 'border-red-500'
-                          }`}
+                          className={`bg-[#2d3748] rounded-lg p-4 border-l-4 ${resultStyling.border}`}
                         >
                           <div className="flex justify-between items-start mb-2">
                             <div className="flex-1">
@@ -298,8 +321,8 @@ export default function ProfileTab({
                                     You ({match.team1})
                                   </span>
                                   <span className="text-lg font-bold text-white">
-                                    {match.player1_goals} -{' '}
-                                    {match.player2_goals}
+                                    {match.current_player_goals} -{' '}
+                                    {match.opponent_goals}
                                   </span>
                                   <span className="text-sm text-gray-300">
                                     {match.opponent_username} ({match.team2})
@@ -307,15 +330,9 @@ export default function ProfileTab({
                                 </div>
                                 <div className="text-xs">
                                   <span
-                                    className={`px-2 py-1 rounded-full ${
-                                      isWin
-                                        ? 'bg-green-500/20 text-green-300'
-                                        : isDraw
-                                          ? 'bg-yellow-500/20 text-yellow-300'
-                                          : 'bg-red-500/20 text-red-300'
-                                    }`}
+                                    className={`px-2 py-1 rounded-full ${resultStyling.badge}`}
                                   >
-                                    {isWin ? 'W' : isDraw ? 'D' : 'L'}
+                                    {resultStyling.text}
                                   </span>
                                 </div>
                               </div>
