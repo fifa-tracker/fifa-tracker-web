@@ -45,6 +45,22 @@ export default function LogMatch({
 
   const teams = FIFA23AllTeams.map(team => team.name);
 
+  // Function to get prioritized team options for a player
+  const getPrioritizedTeams = (playerId: string) => {
+    if (!playerId) return teams;
+
+    const selectedPlayer = players.find(player => player.id === playerId);
+    const recentTeams = selectedPlayer?.last_5_teams || [];
+
+    if (recentTeams.length === 0) return teams;
+
+    // Get teams that are not in recent teams
+    const otherTeams = teams.filter(team => !recentTeams.includes(team));
+
+    // Return recent teams first, then other teams
+    return [...recentTeams, ...otherTeams];
+  };
+
   const handleInputChange = (field: string, value: string | number) => {
     // Don't allow changes if tournament is completed
     if (isTournamentCompleted) return;
@@ -128,7 +144,7 @@ export default function LogMatch({
 
           <label className="block text-sm font-medium mb-2 mt-4">Team 1</label>
           <CustomDropdown
-            options={teams}
+            options={getPrioritizedTeams(formData.player1_id)}
             value={formData.team1}
             onChange={value => handleInputChange('team1', value)}
             placeholder="Select team 1"
@@ -199,7 +215,7 @@ export default function LogMatch({
 
           <label className="block text-sm font-medium mb-2 mt-4">Team 2</label>
           <CustomDropdown
-            options={teams}
+            options={getPrioritizedTeams(formData.player2_id)}
             value={formData.team2}
             onChange={value => handleInputChange('team2', value)}
             placeholder="Select team 2"

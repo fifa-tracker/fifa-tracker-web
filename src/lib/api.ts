@@ -943,17 +943,6 @@ export async function getCurrentUserStats(
   }
 }
 
-export async function getAllUsersStats(): Promise<UserDetailedStats[]> {
-  try {
-    const axiosInstance = createAuthenticatedRequest();
-    const response = await axiosInstance.get('/stats/');
-    return response.data;
-  } catch (error) {
-    debugError('Error fetching all users stats:', error);
-    return [];
-  }
-}
-
 // Friend-related functions
 export async function sendFriendRequest(
   friend_id: string
@@ -1144,6 +1133,7 @@ export interface User {
   tournaments_played?: number;
   tournament_ids?: string[];
   access_token?: string;
+  last_5_teams?: string[];
 }
 
 export interface Match {
