@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(userData);
           setAccessToken(savedToken);
 
-          // Fetch fresh user data from backend
+          // Fetch fresh user data from backend to ensure token is still valid
           const currentUser = await getCurrentUser();
           if (currentUser) {
             setUser(currentUser);
@@ -61,12 +61,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               'fifa-tracker-user',
               JSON.stringify(currentUser)
             );
+          } else {
+            // Token might be invalid, clear auth data
+            localStorage.removeItem('fifa-tracker-user');
+            localStorage.removeItem('fifa-tracker-token');
+            localStorage.removeItem('fifa-tracker-refresh-token');
+            setUser(null);
+            setAccessToken(null);
           }
         } catch (error) {
           console.error('Error parsing saved user data:', error);
           localStorage.removeItem('fifa-tracker-user');
           localStorage.removeItem('fifa-tracker-token');
           localStorage.removeItem('fifa-tracker-refresh-token');
+          setUser(null);
+          setAccessToken(null);
         }
       }
       setIsLoading(false);

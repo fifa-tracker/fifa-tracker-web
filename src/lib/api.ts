@@ -807,6 +807,48 @@ export async function login(
   }
 }
 
+export async function onGoogleSignInClick(): Promise<void> {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/auth/google/login`);
+    const data = await response.data;
+    window.location.href = data.auth_url;
+  } catch (error) {
+    debugError('Error initiating Google Sign-In:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 401) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+    }
+    throw new Error('Failed to initiate Google Sign-In. Please try again.');
+  }
+}
+
+export async function handleGoogleCallback(
+  token: string
+): Promise<User | null> {
+  try {
+    // Store the token temporarily
+    localStorage.setItem('fifa-tracker-token', token);
+
+    // Fetch user data using the token
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.get('/auth/me');
+    const userData = response.data;
+
+    // Store user data
+    localStorage.setItem('fifa-tracker-user', JSON.stringify(userData));
+
+    return userData;
+  } catch (error) {
+    debugError('Error handling Google callback:', error);
+    // Clear tokens on error
+    localStorage.removeItem('fifa-tracker-token');
+    localStorage.removeItem('fifa-tracker-refresh-token');
+    return null;
+  }
+}
+
 export async function refreshToken(): Promise<string | null> {
   try {
     const refreshToken = localStorage.getItem('fifa-tracker-refresh-token');
