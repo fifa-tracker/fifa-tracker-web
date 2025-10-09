@@ -3,6 +3,7 @@ import { recordMatch } from '@/lib/api';
 import { Tournament, User } from '@/types';
 import { useState } from 'react';
 import CustomDropdown from './CustomDropdown';
+import { useToast } from './ToastProvider';
 
 interface LogMatchProps {
   players: User[];
@@ -29,6 +30,7 @@ export default function LogMatch({
   onNavigateToSettings,
   prePopulatedMatch,
 }: LogMatchProps) {
+  const { showToast } = useToast();
   const selectedTournament =
     tournaments.find(t => t.id === selectedTournamentId) || tournaments[0];
 
@@ -87,6 +89,8 @@ export default function LogMatch({
       formData.half_length
     )
       .then(() => {
+        // Show success toast
+        showToast('Match logged successfully!', 'success');
         // Call the callback to redirect to History tab
         if (onMatchLogged) {
           onMatchLogged();
@@ -94,7 +98,15 @@ export default function LogMatch({
       })
       .catch(error => {
         console.error('Error logging match:', error);
+        // Show error toast with user-friendly message
+        const errorMessage =
+          error?.response?.data?.detail ||
+          error?.message ||
+          'Failed to log match. Please try again.';
+        showToast(errorMessage, 'error');
       });
+
+    // Reset form data after submission attempt
     setFormData({
       player1_id: prePopulatedMatch?.player1_id || '',
       player2_id: prePopulatedMatch?.player2_id || '',
