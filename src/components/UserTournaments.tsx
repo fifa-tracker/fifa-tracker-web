@@ -1,17 +1,15 @@
 import {
   addPlayerToTournament,
   deleteTournament,
-  Friend,
   getFriends,
   getPlayers,
   getTournamentPlayers,
   getTournaments,
   removePlayerFromTournament,
-  Tournament,
   updateTournament,
-  User,
 } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { Friend, Tournament, User } from '@/types';
 import { useEffect, useState } from 'react';
 import CustomDropdown from './CustomDropdown';
 

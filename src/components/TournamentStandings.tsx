@@ -1,5 +1,5 @@
 import { DrawIcon, LossIcon, TrophyIcon, WinIcon } from '@/components/Icons';
-import { PlayerStats } from '@/lib/api';
+import { PlayerStats } from '@/types';
 
 interface TournamentStandingsProps {
   standings: PlayerStats[];

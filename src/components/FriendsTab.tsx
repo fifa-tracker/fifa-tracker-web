@@ -1,7 +1,7 @@
 'use client';
 
 import { ChartBarIcon, UserIcon } from '@/components/Icons';
-import { Friend } from '@/lib/api';
+import { Friend } from '@/types';
 import { useRouter } from 'next/navigation';
 
 interface FriendsTabProps {

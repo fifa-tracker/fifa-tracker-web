@@ -19,13 +19,15 @@ import {
   getTournamentPlayers,
   getTournaments,
   getTournamentStandings,
+} from '@/lib/api';
+import { useAuth } from '@/lib/auth';
+import {
   MatchResult,
   PaginatedResponse,
   PlayerStats,
   Tournament,
   User,
-} from '@/lib/api';
-import { useAuth } from '@/lib/auth';
+} from '@/types';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -129,7 +131,7 @@ export default function Home() {
 
   const tabs = [
     { id: 'tournament', label: 'Tournament', icon: TrophyIcon },
-    { id: 'history', label: 'History', icon: CalendarIcon },
+    { id: 'history', label: 'Matches', icon: CalendarIcon },
     { id: 'log-match', label: 'Log Match', icon: PlusIcon },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
@@ -418,6 +420,7 @@ export default function Home() {
               tournaments={tournaments}
               selectedTournamentId={selectedTournament}
               onMatchLogged={() => handleTabClick('history')}
+              onNavigateToSettings={() => handleTabClick('settings')}
               prePopulatedMatch={prePopulatedMatch || undefined}
             />
           )}

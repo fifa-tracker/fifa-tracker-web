@@ -1,7 +1,7 @@
 'use client';
 
 import { UserIcon, UserPlusIcon } from '@/components/Icons';
-import { NonFriendPlayer } from '@/lib/api';
+import { NonFriendPlayer } from '@/types';
 import { useRouter } from 'next/navigation';
 
 interface SuggestedPlayersTabProps {

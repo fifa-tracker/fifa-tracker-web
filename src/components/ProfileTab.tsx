@@ -1,6 +1,6 @@
 'use client';
 
-import { User, UserDetailedStats } from '@/lib/api';
+import { User, UserDetailedStats } from '@/types';
 import { useRouter } from 'next/navigation';
 
 interface ProfileTabProps {

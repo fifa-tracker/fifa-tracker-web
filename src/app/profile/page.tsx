@@ -8,18 +8,20 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import SuggestedPlayersTab from '@/components/SuggestedPlayersTab';
 import {
   acceptFriendRequest,
-  Friend,
-  FriendRequestsResponse,
   getCurrentUserStats,
   getFriendRequests,
   getFriends,
   getRecentNonFriendOpponents,
-  NonFriendPlayer,
   rejectFriendRequest,
   sendFriendRequest,
-  UserDetailedStats,
 } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import {
+  Friend,
+  FriendRequestsResponse,
+  NonFriendPlayer,
+  UserDetailedStats,
+} from '@/types';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 

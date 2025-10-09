@@ -1,4 +1,5 @@
-import { deleteMatch, MatchResult, updateMatch } from '@/lib/api';
+import { deleteMatch, updateMatch } from '@/lib/api';
+import { MatchResult } from '@/types';
 import { useState } from 'react';
 import { PencilIcon, TrashIcon } from './Icons';
 

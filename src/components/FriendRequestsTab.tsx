@@ -1,7 +1,7 @@
 'use client';
 
 import { UserIcon } from '@/components/Icons';
-import { FriendRequestUser } from '@/lib/api';
+import { FriendRequestUser } from '@/types';
 
 interface FriendRequestsTabProps {
   friendRequests: {

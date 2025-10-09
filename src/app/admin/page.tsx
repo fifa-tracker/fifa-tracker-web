@@ -1,7 +1,8 @@
 'use client';
 
 import { TrophyIcon } from '@/components/Icons';
-import { getTable, PlayerStats } from '@/lib/api';
+import { getTable } from '@/lib/api';
+import { PlayerStats } from '@/types';
 import { useEffect, useState } from 'react';
 
 export default function AdminPage() {

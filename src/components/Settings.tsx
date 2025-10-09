@@ -1,11 +1,6 @@
-import {
-  createTournament,
-  Friend,
-  getFriends,
-  getPlayers,
-  User,
-} from '@/lib/api';
+import { createTournament, getFriends, getPlayers } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { Friend, User } from '@/types';
 import { useEffect, useRef, useState } from 'react';
 import UserTournaments from './UserTournaments';
 
