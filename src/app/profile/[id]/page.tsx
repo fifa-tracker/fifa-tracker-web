@@ -2,8 +2,8 @@
 
 import { ArrowLeftIcon, TrophyIcon, UserIcon } from '@/components/Icons';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/contexts/auth';
 import { getPlayerStats } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
 import { UserDetailedStats } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';

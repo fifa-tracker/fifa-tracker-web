@@ -1,5 +1,5 @@
+import { useAuth } from '@/contexts/auth';
 import { createTournament, getFriends, getPlayers } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
 import { Friend, User } from '@/types';
 import { useEffect, useRef, useState } from 'react';
 import UserTournaments from './UserTournaments';

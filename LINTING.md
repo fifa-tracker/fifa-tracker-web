@@ -18,7 +18,6 @@ This document outlines the linting setup and code quality practices for the FIFA
 ### Combined Quality Checks
 
 - `npm run code-quality` - Run both linting and type checking
-- `npm run pre-commit` - Run all quality checks (used in git hooks)
 
 ## Automatic Linting
 
@@ -27,11 +26,6 @@ This document outlines the linting setup and code quality practices for the FIFA
 - **Format on Save**: Automatically formats code when you save files
 - **ESLint Auto-fix**: Automatically fixes ESLint issues on save
 - **Import Organization**: Automatically organizes imports on save
-
-### Git Hooks
-
-- **Pre-commit Hook**: Automatically runs linting and type checking before commits
-- **Lint-staged**: Only checks files that are staged for commit
 
 ## ESLint Rules
 

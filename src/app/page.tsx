@@ -14,13 +14,13 @@ import MatchHistory from '@/components/MatchHistory';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Settings from '@/components/Settings';
 import TournamentStandings from '@/components/TournamentStandings';
+import { useAuth } from '@/contexts/auth';
 import {
   getTournamentMatches,
   getTournamentPlayers,
   getTournaments,
   getTournamentStandings,
 } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
 import {
   MatchResult,
   PaginatedResponse,

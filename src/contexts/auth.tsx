@@ -1,5 +1,6 @@
 'use client';
 
+import { getCurrentUser, login, register } from '@/lib/api';
 import { User } from '@/types';
 import {
   createContext,
@@ -8,7 +9,6 @@ import {
   useEffect,
   useState,
 } from 'react';
-import { getCurrentUser, login, register } from './api';
 
 interface AuthContextType {
   user: User | null;

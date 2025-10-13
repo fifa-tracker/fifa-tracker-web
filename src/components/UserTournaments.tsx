@@ -1,3 +1,4 @@
+import { useAuth } from '@/contexts/auth';
 import {
   addPlayerToTournament,
   deleteTournament,
@@ -8,7 +9,6 @@ import {
   removePlayerFromTournament,
   updateTournament,
 } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
 import { Friend, Tournament, User } from '@/types';
 import { useEffect, useState } from 'react';
 import CustomDropdown from './CustomDropdown';

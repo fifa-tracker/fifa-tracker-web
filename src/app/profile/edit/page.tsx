@@ -2,8 +2,8 @@
 
 import { ArrowLeftIcon, TrophyIcon, UserIcon } from '@/components/Icons';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/contexts/auth';
 import { checkUsernameAvailability, updateUserProfile } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 

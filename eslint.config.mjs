@@ -1,4 +1,5 @@
 import { FlatCompat } from '@eslint/eslintrc';
+import js from '@eslint/js';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -10,8 +11,19 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  js.configs.recommended,
+  ...compat.extends('next/core-web-vitals'),
+  ...compat.extends('next/typescript'),
   {
+    languageOptions: {
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
     rules: {
       // TypeScript specific rules
       '@typescript-eslint/no-unused-vars': [

@@ -1,11 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { TrophyIcon, ArrowLeftIcon, ExclamationTriangleIcon } from '@/components/Icons';
+import {
+  ArrowLeftIcon,
+  ExclamationTriangleIcon,
+  TrophyIcon,
+} from '@/components/Icons';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { useAuth } from '@/lib/auth';
+import { useAuth } from '@/contexts/auth';
 import { deleteUserAccount } from '@/lib/api';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export default function DeleteAccountPage() {
   const { signOut } = useAuth();
@@ -24,7 +28,7 @@ export default function DeleteAccountPage() {
 
   const handleDeleteAccount = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isConfirmationValid) {
       setError('Please type the exact confirmation text to proceed.');
       return;
@@ -66,7 +70,9 @@ export default function DeleteAccountPage() {
               >
                 <ArrowLeftIcon className="w-5 h-5 text-gray-400" />
                 <TrophyIcon className="text-yellow-400 w-6 h-6 sm:w-8 sm:h-8" />
-                <h1 className="text-xl sm:text-2xl font-bold">Delete Account</h1>
+                <h1 className="text-xl sm:text-2xl font-bold">
+                  Delete Account
+                </h1>
               </button>
             </div>
           </div>
@@ -81,14 +87,18 @@ export default function DeleteAccountPage() {
                 <ExclamationTriangleIcon className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-red-400">Delete Your Account</h2>
+                <h2 className="text-2xl font-bold text-red-400">
+                  Delete Your Account
+                </h2>
                 <p className="text-gray-400">This action cannot be undone</p>
               </div>
             </div>
 
             {/* Warning Message */}
             <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
-              <h3 className="text-lg font-semibold text-red-400 mb-2">⚠️ Warning</h3>
+              <h3 className="text-lg font-semibold text-red-400 mb-2">
+                ⚠️ Warning
+              </h3>
               <p className="text-gray-300 mb-3">
                 Deleting your account will permanently remove:
               </p>
@@ -113,8 +123,13 @@ export default function DeleteAccountPage() {
             {/* Confirmation Form */}
             <form onSubmit={handleDeleteAccount} className="space-y-6">
               <div>
-                <label htmlFor="confirmation" className="block text-sm font-medium text-gray-300 mb-2">
-                  Type <span className="font-mono text-red-400">{requiredText}</span> to confirm
+                <label
+                  htmlFor="confirmation"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
+                  Type{' '}
+                  <span className="font-mono text-red-400">{requiredText}</span>{' '}
+                  to confirm
                 </label>
                 <input
                   type="text"
@@ -127,7 +142,8 @@ export default function DeleteAccountPage() {
                 />
                 {confirmationText && !isConfirmationValid && (
                   <p className="mt-2 text-sm text-red-400">
-                    Please type the exact text: <span className="font-mono">{requiredText}</span>
+                    Please type the exact text:{' '}
+                    <span className="font-mono">{requiredText}</span>
                   </p>
                 )}
               </div>
@@ -139,7 +155,9 @@ export default function DeleteAccountPage() {
                   disabled={isLoading || !isConfirmationValid}
                   className="flex-1 px-6 py-3 bg-red-500 hover:bg-red-600 disabled:bg-red-500/50 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-medium"
                 >
-                  {isLoading ? 'Deleting Account...' : 'Permanently Delete Account'}
+                  {isLoading
+                    ? 'Deleting Account...'
+                    : 'Permanently Delete Account'}
                 </button>
                 <button
                   type="button"
@@ -156,4 +174,4 @@ export default function DeleteAccountPage() {
       </div>
     </ProtectedRoute>
   );
-} 
+}

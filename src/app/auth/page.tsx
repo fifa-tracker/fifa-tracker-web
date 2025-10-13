@@ -3,8 +3,8 @@
 import { TrophyIcon } from '@/components/Icons';
 import LoginForm from '@/components/LoginForm';
 import RegisterForm from '@/components/RegisterForm';
+import { useAuth } from '@/contexts/auth';
 import { onGoogleSignInClick } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 

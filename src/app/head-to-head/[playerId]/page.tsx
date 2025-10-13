@@ -2,8 +2,8 @@
 
 import { ArrowLeftIcon, TrophyIcon } from '@/components/Icons';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { useAuth } from '@/contexts/auth';
 import { getHeadToHead } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -24,21 +24,32 @@ interface HeadToHeadStats {
   player2_avg_goals: number;
 }
 
-export default async function HeadToHeadPage({
+export default function HeadToHeadPage({
   params,
 }: {
   params: Promise<{ playerId: string }>;
 }) {
-  const resolvedParams = await params;
-
-  return <HeadToHeadContent playerId={resolvedParams.playerId} />;
+  return <HeadToHeadContent params={params} />;
 }
 
-function HeadToHeadContent({ playerId }: { playerId: string }) {
+function HeadToHeadContent({
+  params,
+}: {
+  params: Promise<{ playerId: string }>;
+}) {
   const router = useRouter();
   const { user } = useAuth();
   const [stats, setStats] = useState<HeadToHeadStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [playerId, setPlayerId] = useState<string>('');
+
+  useEffect(() => {
+    const resolveParams = async () => {
+      const resolvedParams = await params;
+      setPlayerId(resolvedParams.playerId);
+    };
+    resolveParams();
+  }, [params]);
 
   useEffect(() => {
     const fetchHeadToHead = async () => {

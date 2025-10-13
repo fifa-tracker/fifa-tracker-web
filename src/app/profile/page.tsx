@@ -6,6 +6,7 @@ import { ArrowLeftIcon, TrophyIcon, UserIcon } from '@/components/Icons';
 import ProfileTab from '@/components/ProfileTab';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import SuggestedPlayersTab from '@/components/SuggestedPlayersTab';
+import { useAuth } from '@/contexts/auth';
 import {
   acceptFriendRequest,
   getCurrentUserStats,
@@ -15,7 +16,6 @@ import {
   rejectFriendRequest,
   sendFriendRequest,
 } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
 import {
   Friend,
   FriendRequestsResponse,

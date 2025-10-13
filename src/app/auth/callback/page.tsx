@@ -1,7 +1,7 @@
 'use client';
 
+import { useAuth } from '@/contexts/auth';
 import { handleGoogleCallback } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 

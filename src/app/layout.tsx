@@ -1,5 +1,5 @@
 import { ToastProvider } from '@/components/ToastProvider';
-import { AuthProvider } from '@/lib/auth';
+import { AuthProvider } from '@/contexts/auth';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';

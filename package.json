@@ -11,9 +11,7 @@
     "lint:check": "next lint --max-warnings 0",
     "type-check": "tsc --noEmit",
     "type-check:watch": "tsc --noEmit --watch",
-    "code-quality": "npm run lint:check && npm run type-check",
-    "pre-commit": "npm run lint:fix && npm run type-check",
-    "lint-staged": "lint-staged"
+    "code-quality": "npm run lint:check && npm run type-check"
   },
   "dependencies": {
     "@vercel/analytics": "^1.5.0",
@@ -25,14 +23,13 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@next/eslint-plugin-next": "^15.5.5",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.4.1",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.1.2",
     "prettier": "^3.6.2",
     "tailwindcss": "^4",
     "typescript": "^5"
