@@ -209,3 +209,21 @@ export interface Friend {
   wins?: number;
   elo_rating?: number;
 }
+
+// User search interfaces
+export interface UserSearchQuery {
+  query: string;
+  limit?: number;
+}
+
+export interface UserSearchResult {
+  id: string;
+  username: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  full_name?: string | null;
+  email: string;
+  is_friend: boolean;
+  friend_request_sent: boolean;
+  friend_request_received: boolean;
+}

@@ -3,6 +3,7 @@ import {
   FriendRequestsResponse,
   FriendResponse,
   NonFriendPlayer,
+  UserSearchResult,
 } from '@/types';
 import axios, { AxiosError } from 'axios';
 import { createAuthenticatedRequest, debugError } from './shared';
@@ -153,5 +154,35 @@ export async function rejectFriendRequest(
       }
     }
     throw new Error('Failed to reject friend request. Please try again.');
+  }
+}
+
+export async function searchUsers(
+  query: string,
+  limit?: number
+): Promise<UserSearchResult[]> {
+  try {
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.post('/user/search', {
+      query,
+      limit,
+    });
+    return response.data;
+  } catch (error) {
+    debugError('Error searching users:', error);
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError;
+      if (axiosError.response?.status === 401) {
+        throw new Error('Authentication required. Please log in again.');
+      } else if (axiosError.response?.status === 422) {
+        throw new Error('Invalid search query. Please check your input.');
+      } else {
+        const errorData = axiosError.response?.data as Record<string, unknown>;
+        throw new Error(
+          `Failed to search users: ${errorData?.detail || axiosError.message}`
+        );
+      }
+    }
+    throw new Error('Failed to search users. Please try again.');
   }
 }

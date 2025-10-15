@@ -1,11 +1,13 @@
 'use client';
 
 import CustomDropdown from '@/components/CustomDropdown';
+import Friends from '@/components/Friends';
 import {
   Bars3Icon,
   CalendarIcon,
+  HierarchyIcon,
   PlusIcon,
-  SettingsIcon,
+  TableIcon,
   TrophyIcon,
   UserIcon,
 } from '@/components/Icons';
@@ -28,12 +30,13 @@ import {
   Tournament,
   User,
 } from '@/types';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function Home() {
   const { user, signOut } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('tournament');
   const [selectedTournament, setSelectedTournament] = useState<string>('');
   const [tournament, setTournament] = useState<Tournament | null>(null);
@@ -58,6 +61,28 @@ export default function Home() {
     player2_goals: number;
     half_length: number;
   } | null>(null);
+
+  // Sync activeTab with URL parameter
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab');
+    const validTabs = [
+      'tournament',
+      'history',
+      'log-match',
+      'friends',
+      'settings',
+    ];
+
+    if (tabFromUrl && validTabs.includes(tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    } else {
+      // If no valid tab in URL, set default and update URL
+      setActiveTab('tournament');
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('tab', 'tournament');
+      router.replace(`/?${params.toString()}`, { scroll: false });
+    }
+  }, [searchParams, router]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -130,13 +155,19 @@ export default function Home() {
   }, [selectedTournament]);
 
   const tabs = [
-    { id: 'tournament', label: 'Tournament', icon: TrophyIcon },
+    { id: 'tournament', label: 'Table', icon: TableIcon },
     { id: 'history', label: 'Matches', icon: CalendarIcon },
     { id: 'log-match', label: 'Log Match', icon: PlusIcon },
-    { id: 'settings', label: 'Settings', icon: SettingsIcon },
+    { id: 'friends', label: 'Friends', icon: UserIcon },
+    { id: 'settings', label: 'Tournament', icon: HierarchyIcon },
   ];
 
   const handleTabClick = async (tabId: string) => {
+    // Update URL with the new tab parameter
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', tabId);
+    router.push(`/?${params.toString()}`, { scroll: false });
+
     setActiveTab(tabId);
 
     // Clear pre-populated match data when switching to log-match tab manually
@@ -256,7 +287,10 @@ export default function Home() {
         half_length: match.half_length,
       });
 
-      // Switch to log-match tab
+      // Switch to log-match tab and update URL
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('tab', 'log-match');
+      router.push(`/?${params.toString()}`, { scroll: false });
       setActiveTab('log-match');
     }
   };
@@ -424,6 +458,8 @@ export default function Home() {
               prePopulatedMatch={prePopulatedMatch || undefined}
             />
           )}
+
+          {activeTab === 'friends' && <Friends />}
 
           {activeTab === 'settings' && (
             <Settings onTournamentCreated={refreshTournaments} />

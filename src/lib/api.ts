@@ -56,6 +56,7 @@ export {
   getFriends,
   getRecentNonFriendOpponents,
   rejectFriendRequest,
+  searchUsers,
   sendFriendRequest,
 } from './user';
 
