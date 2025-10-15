@@ -333,6 +333,138 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                   </div>
                 </div>
               )}
+
+              {/* Last 5 Teams */}
+              {playerStats.last_5_teams &&
+                playerStats.last_5_teams.length > 0 && (
+                  <div className="space-y-4">
+                    <h4 className="text-md font-semibold">Recent Teams</h4>
+                    <div className="bg-[#2d3748] rounded-lg p-4">
+                      <div className="flex flex-wrap gap-2">
+                        {playerStats.last_5_teams.map((team, index) => (
+                          <span
+                            key={index}
+                            className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm"
+                          >
+                            {team}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              {/* Last 5 Matches */}
+              {playerStats.last_5_matches &&
+                playerStats.last_5_matches.length > 0 && (
+                  <div className="space-y-4">
+                    <h4 className="text-md font-semibold">Recent Matches</h4>
+                    <div className="space-y-3">
+                      {playerStats.last_5_matches.map((match, index) => {
+                        const matchDate = new Date(match.date);
+                        const formattedDate = matchDate.toLocaleDateString(
+                          'en-US',
+                          {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          }
+                        );
+                        const formattedTime = matchDate.toLocaleTimeString(
+                          'en-US',
+                          {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          }
+                        );
+
+                        // Determine match result styling based on match_result field
+                        const getResultStyling = (result: string) => {
+                          switch (result) {
+                            case 'win':
+                              return {
+                                border: 'border-green-500',
+                                badge: 'bg-green-500/20 text-green-300',
+                                text: 'W',
+                              };
+                            case 'draw':
+                              return {
+                                border: 'border-yellow-500',
+                                badge: 'bg-yellow-500/20 text-yellow-300',
+                                text: 'D',
+                              };
+                            case 'loss':
+                              return {
+                                border: 'border-red-500',
+                                badge: 'bg-red-500/20 text-red-300',
+                                text: 'L',
+                              };
+                            default:
+                              return {
+                                border: 'border-gray-500',
+                                badge: 'bg-gray-500/20 text-gray-300',
+                                text: '?',
+                              };
+                          }
+                        };
+
+                        const resultStyling = getResultStyling(
+                          match.match_result
+                        );
+
+                        return (
+                          <div
+                            key={index}
+                            className={`bg-[#2d3748] rounded-lg p-4 border-l-4 ${resultStyling.border}`}
+                          >
+                            <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-2 space-y-2 md:space-y-0">
+                              <div className="flex-1">
+                                <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 mb-2">
+                                  <span className="text-sm font-medium text-gray-300">
+                                    {match.tournament_name}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    {formattedDate} at {formattedTime}
+                                  </span>
+                                </div>
+                                <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0">
+                                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3">
+                                    <span className="text-sm text-gray-300">
+                                      {playerStats.username} ({match.team1})
+                                    </span>
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-lg font-bold text-white">
+                                        {match.current_player_goals} -{' '}
+                                        {match.opponent_goals}
+                                      </span>
+                                      <div className="md:hidden">
+                                        <span
+                                          className={`px-2 py-1 rounded-full text-sm font-medium ${resultStyling.badge}`}
+                                        >
+                                          {resultStyling.text}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <span className="text-sm text-gray-300">
+                                      {match.opponent_username} ({match.team2})
+                                    </span>
+                                  </div>
+                                  <div className="hidden md:block text-xs">
+                                    <span
+                                      className={`px-2 py-1 rounded-full ${resultStyling.badge}`}
+                                    >
+                                      {resultStyling.text}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
             </div>
           </div>
         </div>
