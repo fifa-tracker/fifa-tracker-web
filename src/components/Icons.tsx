@@ -1,19 +1,91 @@
-export const TrophyIcon = ({
-  className = 'w-6 h-6',
-}: {
-  className?: string;
-}) => (
-  <svg className={className} fill="currentColor" viewBox="0 0 24 24">
-    {/* Trophy cup */}
-    <path d="M8 4h8c1.1 0 2 .9 2 2v4c0 1.1-.9 2-2 2h-1v2c0 1.1-.9 2-2 2h-2c-1.1 0-2-.9-2-2v-2H8c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-    {/* Trophy handles */}
-    <path d="M6 8c0-.6.4-1 1-1s1 .4 1 1v2c0 .6-.4 1-1 1s-1-.4-1-1V8z" />
-    <path d="M16 8c0-.6.4-1 1-1s1 .4 1 1v2c0 .6-.4 1-1 1s-1-.4-1-1V8z" />
-    {/* Trophy base */}
-    <path d="M6 18h12v2H6z" />
-    <path d="M7 20h10v1H7z" />
-  </svg>
-);
+export function TrophyIcon({ size = 64 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 64 64"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="drop-shadow-lg"
+    >
+      {/* Trophy Base */}
+      <rect
+        x="20"
+        y="48"
+        width="24"
+        height="4"
+        fill="url(#goldGradient)"
+        rx="1"
+      />
+
+      {/* Trophy Stem */}
+      <rect x="28" y="40" width="8" height="8" fill="url(#goldGradient)" />
+
+      {/* Trophy Cup Left Handle */}
+      <path
+        d="M 20 32 Q 12 32 12 24 Q 12 20 16 20"
+        stroke="url(#goldGradient)"
+        strokeWidth="2.5"
+        fill="none"
+        strokeLinecap="round"
+      />
+
+      {/* Trophy Cup Right Handle */}
+      <path
+        d="M 44 32 Q 52 32 52 24 Q 52 20 48 20"
+        stroke="url(#goldGradient)"
+        strokeWidth="2.5"
+        fill="none"
+        strokeLinecap="round"
+      />
+
+      {/* Trophy Cup Main Body */}
+      <path
+        d="M 20 32 L 18 20 Q 18 16 22 16 L 42 16 Q 46 16 46 20 L 44 32"
+        fill="url(#goldGradient)"
+        stroke="url(#goldGradient)"
+        strokeWidth="1.5"
+      />
+
+      {/* Football/Soccer Ball - Positioned in Trophy Cup */}
+      <circle
+        cx="32"
+        cy="24"
+        r="10"
+        fill="url(#ballGradient)"
+        stroke="#1e293b"
+        strokeWidth="1.5"
+      />
+
+      {/* Ball Pentagon Pattern */}
+      <g stroke="#1e293b" strokeWidth="1" fill="none" opacity="0.6">
+        {/* Top pentagon */}
+        <path d="M 32 16 L 36 18 L 35 23 L 29 23 L 28 18 Z" />
+        {/* Bottom hexagon */}
+        <path d="M 28 25 L 32 27 L 36 25 L 36 31 L 32 33 L 28 31 Z" />
+      </g>
+
+      {/* Shine/Highlight on Ball */}
+      <circle cx="29" cy="20" r="2" fill="white" opacity="0.4" />
+
+      {/* Shine on Trophy */}
+      <ellipse cx="26" cy="22" rx="3" ry="5" fill="white" opacity="0.3" />
+
+      {/* Gradients */}
+      <defs>
+        <linearGradient id="goldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#fbbf24" />
+          <stop offset="50%" stopColor="#f59e0b" />
+          <stop offset="100%" stopColor="#d97706" />
+        </linearGradient>
+        <linearGradient id="ballGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#3b82f6" />
+          <stop offset="100%" stopColor="#1e40af" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
 
 export const FootballIcon = ({
   className = 'w-6 h-6',

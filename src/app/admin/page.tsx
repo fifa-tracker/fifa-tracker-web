@@ -163,9 +163,7 @@ export default function AdminPage() {
                       >
                         <td className="py-3 px-1">
                           <div className="flex items-center gap-1">
-                            {index === 0 && (
-                              <TrophyIcon className="w-3 h-3 text-yellow-400" />
-                            )}
+                            {index === 0 && <TrophyIcon size={12} />}
                             <span
                               className={`text-xs sm:text-sm ${index === 0 ? 'font-bold' : ''}`}
                             >

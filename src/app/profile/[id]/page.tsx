@@ -87,7 +87,7 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                   className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                 >
                   <ArrowLeftIcon className="w-5 h-5 text-gray-400" />
-                  <TrophyIcon className="text-yellow-400 w-6 h-6 sm:w-8 sm:h-8" />
+                  <TrophyIcon size={32} />
                   <h1 className="text-xl sm:text-2xl font-bold">
                     FIFA Tracker
                   </h1>
@@ -132,7 +132,7 @@ export default function PlayerProfilePage({ params }: PlayerProfilePageProps) {
                 className="flex items-center gap-2 hover:opacity-80 transition-opacity"
               >
                 <ArrowLeftIcon className="w-5 h-5 text-gray-400" />
-                <TrophyIcon className="text-yellow-400 w-6 h-6 sm:w-8 sm:h-8" />
+                <TrophyIcon size={32} />
                 <h1 className="text-xl sm:text-2xl font-bold">FIFA Tracker</h1>
               </button>
             </div>
