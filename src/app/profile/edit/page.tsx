@@ -105,7 +105,7 @@ export default function EditProfilePage() {
         updateUser(updatedUser);
         setSuccess('Profile updated successfully!');
         setTimeout(() => {
-          router.push('/profile');
+          router.back();
         }, 1500);
       } else {
         setError('Failed to update profile. Please try again.');
@@ -118,7 +118,7 @@ export default function EditProfilePage() {
   };
 
   const handleCancel = () => {
-    router.push('/profile');
+    router.back();
   };
 
   return (
@@ -130,7 +130,7 @@ export default function EditProfilePage() {
             {/* Logo and Title - Left Side */}
             <div className="flex items-center gap-2 sm:gap-3">
               <button
-                onClick={() => router.push('/profile')}
+                onClick={() => router.back()}
                 className="flex items-center gap-2 hover:opacity-80 transition-opacity"
               >
                 <ArrowLeftIcon className="w-5 h-5 text-gray-400" />

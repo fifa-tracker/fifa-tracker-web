@@ -231,6 +231,16 @@ export default function ProfilePage() {
                     <div className="py-1">
                       <button
                         onClick={() => {
+                          router.push('/profile/settings');
+                          setIsMenuOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-[#2d3748] hover:text-white transition-colors"
+                      >
+                        Settings
+                      </button>
+                      <hr className="my-1 border-gray-700" />
+                      <button
+                        onClick={() => {
                           signOut();
                           setIsMenuOpen(false);
                         }}

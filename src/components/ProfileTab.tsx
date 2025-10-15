@@ -376,25 +376,6 @@ export default function ProfileTab({
           </div>
         )}
       </div>
-
-      {/* Actions */}
-      <div>
-        <h3 className="text-lg font-semibold mb-4">Actions</h3>
-        <div className="space-y-3">
-          <button
-            onClick={() => router.push('/profile/edit')}
-            className="w-full md:w-auto px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
-          >
-            Edit Profile
-          </button>
-          <button
-            onClick={() => router.push('/profile/delete')}
-            className="w-full md:w-auto px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors ml-0 md:ml-3"
-          >
-            Delete Account
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
