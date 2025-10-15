@@ -1,7 +1,6 @@
 'use client';
 
 import { User, UserDetailedStats } from '@/types';
-import { useRouter } from 'next/navigation';
 
 interface ProfileTabProps {
   user: User | null;
@@ -16,8 +15,6 @@ export default function ProfileTab({
   authLoading,
   loading,
 }: ProfileTabProps) {
-  const router = useRouter();
-
   return (
     <div className="space-y-6">
       {/* Account Information */}
