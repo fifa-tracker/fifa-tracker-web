@@ -31,9 +31,9 @@ import {
   User,
 } from '@/types';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
-export default function Home() {
+function HomeContent() {
   const { user, signOut } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -467,5 +467,19 @@ export default function Home() {
         </div>
       </div>
     </ProtectedRoute>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#0f1419] text-white flex items-center justify-center">
+          Loading...
+        </div>
+      }
+    >
+      <HomeContent />
+    </Suspense>
   );
 }
