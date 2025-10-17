@@ -311,9 +311,12 @@ function HomeContent() {
             <div className="flex items-center gap-3">
               {/* Profile Icon */}
               <div className="flex items-center gap-2 p-2 rounded-lg">
-                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                <button
+                  onClick={() => router.push('/profile')}
+                  className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors cursor-pointer"
+                >
                   <UserIcon className="w-4 h-4 text-white" />
-                </div>
+                </button>
                 <button
                   onClick={() => router.push('/profile')}
                   className="hidden sm:block text-sm text-gray-300 hover:text-white transition-colors cursor-pointer"
