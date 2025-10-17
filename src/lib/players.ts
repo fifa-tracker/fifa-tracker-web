@@ -69,7 +69,7 @@ export async function getPlayerStats(
       'getPlayerStats axios instance baseURL:',
       axiosInstance.defaults.baseURL
     );
-    const response = await axiosInstance.get(`/players/${player_id}/stats/`);
+    const response = await axiosInstance.get(`/players/${player_id}/stats`);
     return response.data;
   } catch (error) {
     debugError('Error fetching player stats:', error);
