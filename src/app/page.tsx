@@ -53,6 +53,7 @@ function HomeContent() {
   const [pageSize] = useState(20); // Show 20 matches per page
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [prePopulatedMatch, setPrePopulatedMatch] = useState<{
+    id?: string;
     player1_id: string;
     player2_id: string;
     team1: string;
@@ -60,6 +61,7 @@ function HomeContent() {
     player1_goals: number;
     player2_goals: number;
     half_length: number;
+    completed: boolean;
   } | null>(null);
 
   // Sync activeTab with URL parameter
@@ -278,6 +280,7 @@ function HomeContent() {
 
     if (player1 && player2) {
       setPrePopulatedMatch({
+        id: match.id,
         player1_id: player1.id,
         player2_id: player2.id,
         team1: '', // Teams are not stored in MatchResult, so we'll leave them empty
@@ -285,6 +288,7 @@ function HomeContent() {
         player1_goals: match.player1_goals,
         player2_goals: match.player2_goals,
         half_length: match.half_length,
+        completed: match.completed,
       });
 
       // Switch to log-match tab and update URL
@@ -439,10 +443,14 @@ function HomeContent() {
             <MatchHistory
               matches={matches}
               tournamentId={selectedTournament}
-              isTournamentCreator={userCreatedTournaments.some(
-                t => t.id === selectedTournament
-              )}
-              isTournamentCompleted={tournament?.completed || false}
+              isTournamentCreator={
+                (tournaments.find(t => t.id === selectedTournament)?.owner_id ||
+                  null) === (user?.id || null)
+              }
+              isTournamentCompleted={
+                tournaments.find(t => t.id === selectedTournament)?.completed ||
+                false
+              }
               onMatchUpdated={refreshMatches}
               onPageChange={handlePageChange}
               currentPage={currentPage}

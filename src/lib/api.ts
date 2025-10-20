@@ -28,6 +28,7 @@ export {
 export {
   deleteMatch,
   getMatchHistory,
+  getMatchById,
   recordMatch,
   updateMatch,
 } from './matches';

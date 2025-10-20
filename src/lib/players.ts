@@ -138,6 +138,7 @@ export async function getCurrentUserStats(
 export async function updateUserProfile(
   id: string,
   first_name?: string,
+  last_name?: string,
   email?: string,
   username?: string
 ): Promise<User | null> {
@@ -146,9 +147,10 @@ export async function updateUserProfile(
     const payload: {
       id: string;
       first_name?: string;
+      last_name?: string;
       email?: string;
       username?: string;
-    } = { id, first_name, email, username };
+    } = { id, first_name, last_name, email, username };
     if (id == '') {
       return null;
     }

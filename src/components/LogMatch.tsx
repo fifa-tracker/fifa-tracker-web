@@ -1,7 +1,7 @@
 import { FIFA23AllTeams } from '@/constants/teams';
-import { recordMatch } from '@/lib/api';
+import { getMatchById, recordMatch, updateMatch } from '@/lib/api';
 import { Tournament, User } from '@/types';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import CustomDropdown from './CustomDropdown';
 import { useToast } from './ToastProvider';
 
@@ -12,6 +12,7 @@ interface LogMatchProps {
   onMatchLogged?: () => void;
   onNavigateToSettings?: () => void;
   prePopulatedMatch?: {
+    id?: string;
     player1_id: string;
     player2_id: string;
     team1: string;
@@ -19,6 +20,7 @@ interface LogMatchProps {
     player1_goals: number;
     player2_goals: number;
     half_length: number;
+    completed: boolean;
   };
 }
 
@@ -46,9 +48,39 @@ export default function LogMatch({
     player2_goals: prePopulatedMatch?.player2_goals || 0,
     tournament_id: selectedTournament?.id || '',
     half_length: prePopulatedMatch?.half_length || 3,
+    completed: prePopulatedMatch?.completed || false,
   });
 
   const teams = FIFA23AllTeams.map(team => team.name);
+
+  // Fetch match data when prePopulatedMatch.id exists (only once)
+  useEffect(() => {
+    const fetchMatchData = async () => {
+      if (prePopulatedMatch?.id) {
+        try {
+          const matchData = await getMatchById(prePopulatedMatch.id);
+          if (matchData && matchData.completed) {
+            setFormData({
+              player1_id: matchData.player1_id,
+              player2_id: matchData.player2_id,
+              team1: matchData.team1,
+              team2: matchData.team2,
+              player1_goals: matchData.player1_goals,
+              player2_goals: matchData.player2_goals,
+              tournament_id: selectedTournament?.id || '',
+              half_length: matchData.half_length,
+              completed: matchData.completed,
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching match data:', error);
+          showToast('Failed to load match data', 'error');
+        }
+      }
+    };
+
+    fetchMatchData();
+  }, [prePopulatedMatch?.id, selectedTournament?.id, showToast]);
 
   // Function to get prioritized team options for a player
   const getPrioritizedTeams = (playerId: string) => {
@@ -74,7 +106,35 @@ export default function LogMatch({
   };
 
   const handleSubmit = () => {
-    // Record the match (now automatically marks it as completed)
+    // If editing an existing match, update instead of creating
+    if (prePopulatedMatch?.id) {
+      updateMatch(
+        prePopulatedMatch.id,
+        formData.player1_goals,
+        formData.player2_goals,
+        formData.team1,
+        formData.team2,
+        formData.half_length,
+        true
+      )
+        .then(() => {
+          showToast('Match updated successfully!', 'success');
+          if (onMatchLogged) {
+            onMatchLogged();
+          }
+        })
+        .catch(error => {
+          console.error('Error updating match:', error);
+          const errorMessage =
+            error?.response?.data?.detail ||
+            error?.message ||
+            'Failed to update match. Please try again.';
+          showToast(errorMessage, 'error');
+        });
+      return;
+    }
+
+    // Otherwise, record a new match (automatically marked completed)
     // If tournament is completed, pass null for tournament_id to create a standalone match
     const tournamentId = isTournamentCompleted ? null : formData.tournament_id;
 
@@ -89,16 +149,13 @@ export default function LogMatch({
       formData.half_length
     )
       .then(() => {
-        // Show success toast
         showToast('Match logged successfully!', 'success');
-        // Call the callback to redirect to History tab
         if (onMatchLogged) {
           onMatchLogged();
         }
       })
       .catch(error => {
         console.error('Error logging match:', error);
-        // Show error toast with user-friendly message
         const errorMessage =
           error?.response?.data?.detail ||
           error?.message ||
@@ -116,15 +173,21 @@ export default function LogMatch({
       player2_goals: prePopulatedMatch?.player2_goals || 0,
       tournament_id: selectedTournament?.id || '',
       half_length: prePopulatedMatch?.half_length || 3,
+      completed: prePopulatedMatch?.completed || false,
     });
   };
 
   return (
     <div className="bg-[#1a1f2e] rounded-lg p-4 sm:p-6">
-      <h2 className="text-xl sm:text-2xl font-bold mb-2">Log New Match</h2>
+      <h2 className="text-xl sm:text-2xl font-bold mb-2">
+        {prePopulatedMatch?.id ? 'Update Match' : 'Log New Match'}
+      </h2>
       <p className="text-gray-400 mb-4 sm:mb-6 text-sm sm:text-base">
-        Record a new FIFA match result for{' '}
-        {selectedTournament?.name || 'the tournament'}
+        {prePopulatedMatch?.id
+          ? 'Update the selected match result'
+          : `Record a new FIFA match result for ${
+              selectedTournament?.name || 'the tournament'
+            }`}
       </p>
 
       {isTournamentCompleted && (
@@ -299,14 +362,14 @@ export default function LogMatch({
       <div className="mt-6">
         <button
           className={`w-full font-medium py-3 px-4 rounded-lg transition-colors text-sm sm:text-base ${
-            !selectedTournament
+            !selectedTournament && !prePopulatedMatch?.id
               ? 'bg-gray-500 cursor-not-allowed text-gray-300'
               : 'bg-blue-500 hover:bg-blue-600 text-white'
           }`}
           onClick={handleSubmit}
-          disabled={!selectedTournament}
+          disabled={!selectedTournament && !prePopulatedMatch?.id}
         >
-          Log Match
+          {prePopulatedMatch?.id ? 'Update Match' : 'Log Match'}
         </button>
       </div>
     </div>

@@ -13,6 +13,7 @@ export default function EditProfilePage() {
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const [formData, setFormData] = useState({
     first_name: '',
+    last_name: '',
     email: '',
     username: '',
   });
@@ -66,6 +67,7 @@ export default function EditProfilePage() {
     if (user) {
       setFormData({
         first_name: user.first_name || '',
+        last_name: user.last_name || '',
         email: user.email || '',
         username: user.username || '',
       });
@@ -98,6 +100,7 @@ export default function EditProfilePage() {
       const updatedUser = await updateUserProfile(
         user?.id || '',
         formData.first_name,
+        formData.last_name,
         formData.email,
         formData.username
       );
@@ -185,6 +188,25 @@ export default function EditProfilePage() {
                   required
                   className="w-full px-4 py-3 bg-[#2d3748] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Enter your first name"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="last_name"
+                  className="block text-sm font-medium text-gray-300 mb-2"
+                >
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  id="last_name"
+                  name="last_name"
+                  value={formData.last_name}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-3 bg-[#2d3748] border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter your last name"
                 />
               </div>
 

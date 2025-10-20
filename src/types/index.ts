@@ -73,6 +73,7 @@ export interface MatchResult {
   player2_goals: number;
   date: string;
   half_length: number;
+  completed: boolean;
 }
 
 export interface PlayerStats {

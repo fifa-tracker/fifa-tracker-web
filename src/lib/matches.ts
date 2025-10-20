@@ -91,17 +91,34 @@ export async function updateMatch(
   match_id: string,
   player1_goals: number,
   player2_goals: number,
-  half_length: number
+  team1: string,
+  team2: string,
+  half_length: number,
+  completed: boolean
 ): Promise<void> {
   try {
     const axiosInstance = createAuthenticatedRequest();
     await axiosInstance.put(`/matches/${match_id}/`, {
+      team1,
+      team2,
       player1_goals,
       player2_goals,
       half_length,
-    });
+      completed,
+    } as Match);
   } catch (error) {
     debugError('Error updating match:', error);
+  }
+}
+
+export async function getMatchById(match_id: string): Promise<Match | null> {
+  try {
+    const axiosInstance = createAuthenticatedRequest();
+    const response = await axiosInstance.get(`/matches/${match_id}/`);
+    return response.data;
+  } catch (error) {
+    debugError('Error fetching match by ID:', error);
+    return null;
   }
 }
 
