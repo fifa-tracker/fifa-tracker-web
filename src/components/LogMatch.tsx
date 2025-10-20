@@ -1,6 +1,6 @@
 import { FIFA23AllTeams } from '@/constants/teams';
 import { getMatchById, recordMatch, updateMatch } from '@/lib/api';
-import { Tournament, User } from '@/types';
+import { Match, Tournament, User } from '@/types';
 import { useEffect, useState } from 'react';
 import CustomDropdown from './CustomDropdown';
 import { useToast } from './ToastProvider';
@@ -39,7 +39,7 @@ export default function LogMatch({
   // Check if the tournament is completed
   const isTournamentCompleted = selectedTournament?.completed || false;
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<Match>({
     player1_id: prePopulatedMatch?.player1_id || '',
     player2_id: prePopulatedMatch?.player2_id || '',
     team1: prePopulatedMatch?.team1 || '',
@@ -48,8 +48,8 @@ export default function LogMatch({
     player2_goals: prePopulatedMatch?.player2_goals || 0,
     tournament_id: selectedTournament?.id || '',
     half_length: prePopulatedMatch?.half_length || 3,
-    completed: prePopulatedMatch?.completed || false,
-  });
+    completed: true,
+  } as Match);
 
   const teams = FIFA23AllTeams.map(team => team.name);
 
@@ -61,6 +61,8 @@ export default function LogMatch({
           const matchData = await getMatchById(prePopulatedMatch.id);
           if (matchData && matchData.completed) {
             setFormData({
+              id: matchData.id,
+              date: matchData.date,
               player1_id: matchData.player1_id,
               player2_id: matchData.player2_id,
               team1: matchData.team1,
@@ -69,8 +71,7 @@ export default function LogMatch({
               player2_goals: matchData.player2_goals,
               tournament_id: selectedTournament?.id || '',
               half_length: matchData.half_length,
-              completed: matchData.completed,
-            });
+            } as Match);
           }
         } catch (error) {
           console.error('Error fetching match data:', error);
@@ -115,7 +116,7 @@ export default function LogMatch({
         formData.team1,
         formData.team2,
         formData.half_length,
-        true
+        formData.completed
       )
         .then(() => {
           showToast('Match updated successfully!', 'success');
@@ -145,8 +146,9 @@ export default function LogMatch({
       formData.team2,
       formData.player1_goals,
       formData.player2_goals,
-      tournamentId,
-      formData.half_length
+      formData.half_length,
+      formData.completed,
+      tournamentId || undefined
     )
       .then(() => {
         showToast('Match logged successfully!', 'success');
@@ -173,8 +175,8 @@ export default function LogMatch({
       player2_goals: prePopulatedMatch?.player2_goals || 0,
       tournament_id: selectedTournament?.id || '',
       half_length: prePopulatedMatch?.half_length || 3,
-      completed: prePopulatedMatch?.completed || false,
-    });
+      completed: true,
+    } as Match);
   };
 
   return (

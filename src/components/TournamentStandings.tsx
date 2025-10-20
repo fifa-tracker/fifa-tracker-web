@@ -1,4 +1,4 @@
-import { DrawIcon, LossIcon, TrophyIcon, WinIcon } from '@/components/Icons';
+import { DrawIcon, LossIcon, WinIcon } from '@/components/Icons';
 import { PlayerStats } from '@/types';
 
 interface TournamentStandingsProps {
@@ -75,7 +75,6 @@ export default function TournamentStandings({
               >
                 <td className="py-3 px-1">
                   <div className="flex items-center gap-1">
-                    {index === 0 && <TrophyIcon size={12} />}
                     <span
                       className={`text-xs sm:text-sm ${index === 0 ? 'font-bold' : ''}`}
                     >

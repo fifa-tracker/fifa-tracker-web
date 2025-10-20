@@ -9,8 +9,9 @@ export async function recordMatch(
   team2: string,
   player1_goals: number,
   player2_goals: number,
-  tournament_id: string | null,
-  half_length: number
+  half_length: number,
+  completed: boolean,
+  tournament_id?: string
 ): Promise<Match | null> {
   try {
     const axiosInstance = createAuthenticatedRequest();
@@ -33,7 +34,7 @@ export async function recordMatch(
       player1_goals,
       player2_goals,
       half_length,
-      completed: true,
+      completed,
     };
 
     // Only include tournament_id if it's provided and not empty
@@ -98,7 +99,7 @@ export async function updateMatch(
 ): Promise<void> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    await axiosInstance.put(`/matches/${match_id}/`, {
+    await axiosInstance.put(`/matches/${match_id}`, {
       team1,
       team2,
       player1_goals,
@@ -114,7 +115,7 @@ export async function updateMatch(
 export async function getMatchById(match_id: string): Promise<Match | null> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    const response = await axiosInstance.get(`/matches/${match_id}/`);
+    const response = await axiosInstance.get(`/matches/${match_id}`);
     return response.data;
   } catch (error) {
     debugError('Error fetching match by ID:', error);

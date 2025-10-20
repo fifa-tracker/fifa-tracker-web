@@ -143,7 +143,7 @@ export default function MatchHistory({
                       className={`${
                         match.completed
                           ? 'bg-[#1e293b] border border-green-600/40'
-                          : 'bg-[#2d3748] border border-yellow-600/40'
+                          : 'bg-[#2d3748] border border-red-600/40'
                       } rounded-lg p-3 sm:p-4 ${
                         onMatchClick
                           ? 'cursor-pointer hover:bg-[#374151] transition-colors'
@@ -176,7 +176,7 @@ export default function MatchHistory({
                               className={`text-xs px-2 py-1 rounded-full ${
                                 match.completed
                                   ? 'bg-green-600/30 text-green-300 border border-green-600/40'
-                                  : 'bg-yellow-600/30 text-yellow-200 border border-yellow-600/40'
+                                  : 'bg-red-600/30 text-red-200 border border-red-600/40'
                               }`}
                             >
                               {match.completed ? 'Completed' : 'Incomplete'}

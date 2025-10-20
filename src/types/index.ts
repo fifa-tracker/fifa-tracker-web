@@ -52,6 +52,7 @@ export interface Match {
   date: string;
   half_length: number;
   completed: boolean;
+  tournament_id?: string;
 }
 
 export interface Tournament {
@@ -71,6 +72,8 @@ export interface MatchResult {
   player2_name: string;
   player1_goals: number;
   player2_goals: number;
+  team1: string;
+  team2: string;
   date: string;
   half_length: number;
   completed: boolean;

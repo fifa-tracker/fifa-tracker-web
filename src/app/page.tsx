@@ -283,8 +283,8 @@ function HomeContent() {
         id: match.id,
         player1_id: player1.id,
         player2_id: player2.id,
-        team1: '', // Teams are not stored in MatchResult, so we'll leave them empty
-        team2: '', // Teams are not stored in MatchResult, so we'll leave them empty
+        team1: match.team1,
+        team2: match.team2,
         player1_goals: match.player1_goals,
         player2_goals: match.player2_goals,
         half_length: match.half_length,
