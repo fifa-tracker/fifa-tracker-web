@@ -43,7 +43,7 @@ function HomeContent() {
   const [table, setTable] = useState<PlayerStats[]>([]);
   const [players, setPlayers] = useState<User[]>([]);
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
-  const [userCreatedTournaments, setUserCreatedTournaments] = useState<
+  const [_userCreatedTournaments, setUserCreatedTournaments] = useState<
     Tournament[]
   >([]);
   const [matches, setMatches] = useState<MatchResult[]>([]);

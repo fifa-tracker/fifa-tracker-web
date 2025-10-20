@@ -1,5 +1,4 @@
 import { MatchResult } from '@/types';
-import { useState } from 'react';
 
 interface MatchHistoryProps {
   matches: MatchResult[];
@@ -11,12 +10,6 @@ interface MatchHistoryProps {
   currentPage?: number;
   totalPages?: number;
   onMatchClick?: (match: MatchResult) => void;
-}
-
-interface Toast {
-  id: string;
-  message: string;
-  type: 'success' | 'error';
 }
 
 // Utility function to format date as "July 18th 2025"
@@ -77,35 +70,15 @@ function groupMatchesByDate(matches: MatchResult[]): {
 
 export default function MatchHistory({
   matches,
-  isTournamentCompleted = false,
-  onMatchUpdated,
+  isTournamentCompleted: _isTournamentCompleted = false,
+  onMatchUpdated: _onMatchUpdated,
   onPageChange,
   currentPage = 1,
   totalPages,
   onMatchClick,
 }: MatchHistoryProps) {
-  const [toasts, setToasts] = useState<Toast[]>([]);
-
   // Safety check: ensure matches is always an array
   const safeMatches = Array.isArray(matches) ? matches : [];
-
-  // Toast notification functions
-  const showToast = (message: string, type: 'success' | 'error') => {
-    const id = Date.now().toString();
-    const newToast: Toast = { id, message, type };
-    setToasts(prev => [...prev, newToast]);
-
-    // Auto remove toast after 3 seconds
-    setTimeout(() => {
-      setToasts(prev => prev.filter(toast => toast.id !== id));
-    }, 3000);
-  };
-
-  const removeToast = (id: string) => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
-  };
-
-  // Edit and delete actions have been removed from the UI
 
   const groupedMatches = groupMatchesByDate(safeMatches);
 
@@ -261,28 +234,6 @@ export default function MatchHistory({
           </button>
         </div>
       )}
-
-      {/* Toast Notifications */}
-      <div className="fixed bottom-4 right-4 z-50 space-y-2">
-        {toasts.map(toast => (
-          <div
-            key={toast.id}
-            className={`${
-              toast.type === 'success'
-                ? 'bg-green-500 border-green-600'
-                : 'bg-red-500 border-red-600'
-            } text-white px-4 py-3 rounded-lg shadow-lg border flex items-center justify-between min-w-[300px] animate-in slide-in-from-right duration-300`}
-          >
-            <span>{toast.message}</span>
-            <button
-              onClick={() => removeToast(toast.id)}
-              className="ml-3 text-white hover:text-gray-200 transition-colors"
-            >
-              ×
-            </button>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
