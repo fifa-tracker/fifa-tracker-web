@@ -114,45 +114,50 @@ export default function TournamentStandings({
                 </td>
                 <td className="py-3 px-1 text-center">
                   <div className="flex justify-center gap-2">
-                    {player.last_5_matches?.map((result, matchIndex) => {
-                      if (result === '-') {
-                        return (
-                          <div
-                            key={matchIndex}
-                            className="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-gray-600 border border-gray-500"
-                          />
-                        );
-                      }
-
-                      const getMatchIcon = (result: string) => {
-                        switch (result) {
-                          case 'W':
-                            return (
-                              <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-green-500 flex items-center justify-center">
-                                <WinIcon className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                              </div>
-                            );
-                          case 'L':
-                            return (
-                              <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-red-500 flex items-center justify-center">
-                                <LossIcon className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                              </div>
-                            );
-                          case 'D':
-                            return (
-                              <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-yellow-500 flex items-center justify-center">
-                                <DrawIcon className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
-                              </div>
-                            );
-                          default:
-                            return (
-                              <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-gray-600 border border-gray-500" />
-                            );
+                    {player.last_5_matches
+                      ?.slice()
+                      .reverse()
+                      .map((result, matchIndex) => {
+                        if (result === '-') {
+                          return (
+                            <div
+                              key={matchIndex}
+                              className="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-gray-600 border border-gray-500"
+                            />
+                          );
                         }
-                      };
 
-                      return <div key={matchIndex}>{getMatchIcon(result)}</div>;
-                    })}
+                        const getMatchIcon = (result: string) => {
+                          switch (result) {
+                            case 'W':
+                              return (
+                                <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-green-500 flex items-center justify-center">
+                                  <WinIcon className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                                </div>
+                              );
+                            case 'L':
+                              return (
+                                <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-red-500 flex items-center justify-center">
+                                  <LossIcon className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                                </div>
+                              );
+                            case 'D':
+                              return (
+                                <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-yellow-500 flex items-center justify-center">
+                                  <DrawIcon className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
+                                </div>
+                              );
+                            default:
+                              return (
+                                <div className="w-4 h-4 sm:w-6 sm:h-6 rounded-full bg-gray-600 border border-gray-500" />
+                              );
+                          }
+                        };
+
+                        return (
+                          <div key={matchIndex}>{getMatchIcon(result)}</div>
+                        );
+                      })}
                   </div>
                 </td>
               </tr>
