@@ -1,37 +1,22 @@
 'use client';
 
 import { UserIcon } from '@/components/Icons';
-import { getFriends, searchUsers, sendFriendRequest } from '@/lib/api';
+import { searchUsers, sendFriendRequest } from '@/lib/api';
 import { Friend, UserSearchResult } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-export default function Friends() {
+interface FriendsProps {
+  friends: Friend[];
+  isLoadingFriends: boolean;
+}
+
+export default function Friends({ friends, isLoadingFriends }: FriendsProps) {
   const router = useRouter();
-  const [friends, setFriends] = useState<Friend[]>([]);
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [isLoadingFriends, setIsLoadingFriends] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Load friends on component mount
-  useEffect(() => {
-    const loadFriends = async () => {
-      try {
-        setIsLoadingFriends(true);
-        const friendsList = await getFriends();
-        setFriends(friendsList);
-      } catch (error) {
-        console.error('Error loading friends:', error);
-        setError('Failed to load friends. Please try again.');
-      } finally {
-        setIsLoadingFriends(false);
-      }
-    };
-
-    loadFriends();
-  }, []);
 
   // Search users with debounce
   useEffect(() => {

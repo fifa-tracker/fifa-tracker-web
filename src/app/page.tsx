@@ -18,12 +18,14 @@ import Settings from '@/components/Settings';
 import TournamentStandings from '@/components/TournamentStandings';
 import { useAuth } from '@/contexts/auth';
 import {
+  getFriends,
   getTournamentMatches,
   getTournamentPlayers,
   getTournaments,
   getTournamentStandings,
 } from '@/lib/api';
 import {
+  Friend,
   MatchResult,
   PaginatedResponse,
   PlayerStats,
@@ -63,6 +65,8 @@ function HomeContent() {
     half_length: number;
     completed: boolean;
   } | null>(null);
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [isLoadingFriends, setIsLoadingFriends] = useState(false);
 
   // Sync activeTab with URL parameter
   useEffect(() => {
@@ -197,6 +201,18 @@ function HomeContent() {
         setMatches(paginatedMatches.items);
       } catch (error) {
         console.error('Error fetching match history:', error);
+      }
+    }
+
+    if (tabId === 'friends' && friends.length === 0 && !isLoadingFriends) {
+      try {
+        setIsLoadingFriends(true);
+        const friendsList = await getFriends();
+        setFriends(friendsList);
+      } catch (error) {
+        console.error('Error loading friends:', error);
+      } finally {
+        setIsLoadingFriends(false);
       }
     }
   };
@@ -470,7 +486,9 @@ function HomeContent() {
             />
           )}
 
-          {activeTab === 'friends' && <Friends />}
+          {activeTab === 'friends' && (
+            <Friends friends={friends} isLoadingFriends={isLoadingFriends} />
+          )}
 
           {activeTab === 'settings' && (
             <Settings onTournamentCreated={refreshTournaments} />
