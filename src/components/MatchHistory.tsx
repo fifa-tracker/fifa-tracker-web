@@ -88,7 +88,14 @@ export default function MatchHistory({
 
   return (
     <div className="bg-[#1a1f2e] rounded-lg p-4 sm:p-6">
-      <h2 className="text-xl sm:text-2xl font-bold mb-2">Match History</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl sm:text-2xl font-bold">Match History</h2>
+        {safeMatches.length > 0 && (
+          <span className="text-sm text-gray-300 bg-gray-800/50 px-3 py-1 rounded-full">
+            {safeMatches[0].half_length} min halves
+          </span>
+        )}
+      </div>
 
       {safeMatches.length === 0 ? (
         <div className="text-center py-8">
@@ -126,46 +133,54 @@ export default function MatchHistory({
                         onMatchClick ? () => onMatchClick(match) : undefined
                       }
                     >
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="font-medium text-sm sm:text-base text-left flex-1">
+                      <div className="space-y-3">
+                        {/* Top row - Status */}
+                        <div className="flex justify-center">
+                          <span
+                            className={`text-xs px-3 py-1 rounded-full font-medium ${
+                              match.completed
+                                ? 'bg-green-600/20 text-green-300 border border-green-500/50'
+                                : 'bg-red-600/20 text-red-300 border border-red-500/50'
+                            }`}
+                          >
+                            {match.completed ? 'Completed' : 'Incomplete'}
+                          </span>
+                        </div>
+
+                        {/* Middle row - Players and Score */}
+                        <div className="flex items-center">
+                          <div className="font-semibold text-base sm:text-lg text-white flex-1 text-left">
                             {match.player1_name}
                           </div>
-                          <div className="bg-gray-600 px-3 py-1 rounded-full text-xs sm:text-sm font-medium text-center mx-4">
+                          <div className="bg-gray-700 px-4 py-2 rounded-lg text-sm sm:text-base font-bold text-white mx-6 min-w-[80px] text-center flex-shrink-0">
                             {match.player1_goals} - {match.player2_goals}
                           </div>
-                          <div className="font-medium text-sm sm:text-base text-right flex-1">
+                          <div className="font-semibold text-base sm:text-lg text-white flex-1 text-right">
                             {match.player2_name}
                           </div>
                         </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center justify-center flex-1">
-                            <span className="text-xs text-gray-400">
-                              Half Length: {match.half_length} minutes
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`text-xs px-2 py-1 rounded-full ${
-                                match.completed
-                                  ? 'bg-green-600/30 text-green-300 border border-green-600/40'
-                                  : 'bg-red-600/30 text-red-200 border border-red-600/40'
-                              }`}
-                            >
-                              {match.completed ? 'Completed' : 'Incomplete'}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={e => {
-                                e.stopPropagation();
-                                onMatchClick?.(match);
-                              }}
-                              className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs sm:text-sm transition-colors"
-                              title="Log this match"
-                            >
-                              Log
-                            </button>
-                          </div>
+
+                        {/* Bottom row - Action Button */}
+                        <div className="flex justify-end">
+                          <button
+                            type="button"
+                            onClick={e => {
+                              e.stopPropagation();
+                              onMatchClick?.(match);
+                            }}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                              match.completed
+                                ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                                : 'bg-blue-500 hover:bg-blue-600 text-white'
+                            }`}
+                            title={
+                              match.completed
+                                ? 'Update this match'
+                                : 'Log this match'
+                            }
+                          >
+                            {match.completed ? 'Update' : 'Log'}
+                          </button>
                         </div>
                       </div>
                     </div>
