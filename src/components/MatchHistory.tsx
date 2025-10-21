@@ -12,22 +12,21 @@ interface MatchHistoryProps {
   onMatchClick?: (match: MatchResult) => void;
 }
 
-// Utility function to format date as "July 18th 2025"
+// Utility function to format date as "October 19th, 2025"
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
-  const options: Intl.DateTimeFormatOptions = {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  };
 
-  const formattedDate = date.toLocaleDateString('en-US', options);
+  // Get month name
+  const month = date.toLocaleDateString('en-US', { month: 'long' });
 
-  // Add ordinal suffix to day
+  // Get day with ordinal suffix
   const day = date.getDate();
   const suffix = getOrdinalSuffix(day);
 
-  return formattedDate.replace(/\d+$/, day + suffix);
+  // Get year
+  const year = date.getFullYear();
+
+  return `${month} ${day}${suffix}, ${year}`;
 }
 
 // Utility function to get ordinal suffix
@@ -103,6 +102,7 @@ export default function MatchHistory({
           {sortedDates.map(dateKey => {
             const dateMatches = groupedMatches[dateKey];
             const formattedDate = formatDate(dateMatches[0].date);
+            console.log(formattedDate);
 
             return (
               <div key={dateKey} className="space-y-3">
