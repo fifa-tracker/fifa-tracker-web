@@ -1,12 +1,22 @@
 import { PlayerStats } from '@/types';
 import axios from 'axios';
-import { createAuthenticatedRequest, debugError } from './shared';
+import { createAuthenticatedRequest, debugError, debugLog } from './shared';
 
 export async function getTable(): Promise<PlayerStats[]> {
   try {
     const axiosInstance = createAuthenticatedRequest();
+    debugLog('getTable: Making request to /stats/');
     const response = await axiosInstance.get('/stats/');
-    return response.data;
+    debugLog('getTable: Response received:', response.data);
+
+    // Ensure the response data is an array
+    if (Array.isArray(response.data)) {
+      debugLog('getTable: Returning array with', response.data.length, 'items');
+      return response.data;
+    } else {
+      debugError('getTable: Response data is not an array:', response.data);
+      return [];
+    }
   } catch (error) {
     debugError('Error fetching table:', error);
     if (axios.isAxiosError(error)) {

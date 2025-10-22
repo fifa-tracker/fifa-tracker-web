@@ -31,7 +31,10 @@ interface ConfirmationToast {
 }
 
 interface UserTournamentsProps {
-  onTournamentCreated?: () => void;
+  onTournamentCreated?: (
+    tournamentId?: string,
+    deletedTournamentId?: string
+  ) => void;
 }
 
 export default function UserTournaments({
@@ -210,9 +213,9 @@ export default function UserTournaments({
           setTournaments(prev => prev.filter(t => t.id !== tournamentId));
           showToast('Tournament deleted successfully!', 'success');
 
-          // Refresh the tournament list in the parent component
+          // Refresh the tournament list in the parent component and notify about deletion
           if (onTournamentCreated) {
-            onTournamentCreated();
+            onTournamentCreated(undefined, tournamentId);
           }
         } catch (error) {
           console.error('Error deleting tournament:', error);

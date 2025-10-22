@@ -5,7 +5,10 @@ import { useEffect, useRef, useState } from 'react';
 import UserTournaments from './UserTournaments';
 
 interface SettingsProps {
-  onTournamentCreated?: () => void;
+  onTournamentCreated?: (
+    tournamentId?: string,
+    deletedTournamentId?: string
+  ) => void;
 }
 
 export default function Settings({ onTournamentCreated }: SettingsProps) {
@@ -134,9 +137,9 @@ export default function Settings({ onTournamentCreated }: SettingsProps) {
         // Switch to manage tab to show the new tournament
         setActiveTab('manage');
 
-        // Refresh the tournament list in the parent component
+        // Refresh the tournament list in the parent component and set as active
         if (onTournamentCreated) {
-          onTournamentCreated();
+          onTournamentCreated(tournament.id);
         }
       }
     } catch (error) {

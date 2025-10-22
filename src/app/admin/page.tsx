@@ -16,10 +16,18 @@ export default function AdminPage() {
         setLoading(true);
         setError(null);
         const data = await getTable();
-        setTableData(data);
+        // Ensure data is an array
+        if (Array.isArray(data)) {
+          setTableData(data);
+        } else {
+          console.error('Invalid data format received:', data);
+          setError('Invalid data format received from server.');
+          setTableData([]);
+        }
       } catch (err) {
         console.error('Error fetching table data:', err);
         setError('Failed to load table data. Please try again.');
+        setTableData([]);
       } finally {
         setLoading(false);
       }
@@ -67,21 +75,30 @@ export default function AdminPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <div className="bg-[#1a1f2e] rounded-lg p-4">
             <h3 className="text-gray-400 text-sm font-medium">Total Players</h3>
-            <p className="text-2xl font-bold">{tableData.length}</p>
+            <p className="text-2xl font-bold">
+              {Array.isArray(tableData) ? tableData.length : 0}
+            </p>
           </div>
           <div className="bg-[#1a1f2e] rounded-lg p-4">
             <h3 className="text-gray-400 text-sm font-medium">Total Matches</h3>
             <p className="text-2xl font-bold">
-              {tableData.reduce((sum, player) => sum + player.total_matches, 0)}
+              {Array.isArray(tableData)
+                ? tableData.reduce(
+                    (sum, player) => sum + player.total_matches,
+                    0
+                  )
+                : 0}
             </p>
           </div>
           <div className="bg-[#1a1f2e] rounded-lg p-4">
             <h3 className="text-gray-400 text-sm font-medium">Total Goals</h3>
             <p className="text-2xl font-bold">
-              {tableData.reduce(
-                (sum, player) => sum + player.total_goals_scored,
-                0
-              )}
+              {Array.isArray(tableData)
+                ? tableData.reduce(
+                    (sum, player) => sum + player.total_goals_scored,
+                    0
+                  )
+                : 0}
             </p>
           </div>
           <div className="bg-[#1a1f2e] rounded-lg p-4">
@@ -89,7 +106,9 @@ export default function AdminPage() {
               Active Players
             </h3>
             <p className="text-2xl font-bold">
-              {tableData.filter(player => player.total_matches > 0).length}
+              {Array.isArray(tableData)
+                ? tableData.filter(player => player.total_matches > 0).length
+                : 0}
             </p>
           </div>
         </div>
@@ -100,7 +119,7 @@ export default function AdminPage() {
             Global Standings
           </h2>
 
-          {tableData.length === 0 ? (
+          {!Array.isArray(tableData) || tableData.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-gray-400">No player data available</p>
             </div>
@@ -215,25 +234,31 @@ export default function AdminPage() {
           <div className="bg-[#1a1f2e] rounded-lg p-4">
             <h3 className="text-lg font-bold mb-4">Top Performers</h3>
             <div className="space-y-3">
-              {tableData
-                .sort((a, b) => b.points - a.points)
-                .slice(0, 5)
-                .map((player, index) => (
-                  <div
-                    key={player.id}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{index + 1}.</span>
-                      <span className="text-sm">
-                        {player.first_name || player.username}
+              {Array.isArray(tableData) ? (
+                tableData
+                  .sort((a, b) => b.points - a.points)
+                  .slice(0, 5)
+                  .map((player, index) => (
+                    <div
+                      key={player.id}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">
+                          {index + 1}.
+                        </span>
+                        <span className="text-sm">
+                          {player.first_name || player.username}
+                        </span>
+                      </div>
+                      <span className="text-sm font-bold">
+                        {player.points} pts
                       </span>
                     </div>
-                    <span className="text-sm font-bold">
-                      {player.points} pts
-                    </span>
-                  </div>
-                ))}
+                  ))
+              ) : (
+                <p className="text-gray-400 text-sm">No data available</p>
+              )}
             </div>
           </div>
 
@@ -241,25 +266,31 @@ export default function AdminPage() {
           <div className="bg-[#1a1f2e] rounded-lg p-4">
             <h3 className="text-lg font-bold mb-4">Most Active Players</h3>
             <div className="space-y-3">
-              {tableData
-                .sort((a, b) => b.total_matches - a.total_matches)
-                .slice(0, 5)
-                .map((player, index) => (
-                  <div
-                    key={player.id}
-                    className="flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{index + 1}.</span>
-                      <span className="text-sm">
-                        {player.first_name || player.username}
+              {Array.isArray(tableData) ? (
+                tableData
+                  .sort((a, b) => b.total_matches - a.total_matches)
+                  .slice(0, 5)
+                  .map((player, index) => (
+                    <div
+                      key={player.id}
+                      className="flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">
+                          {index + 1}.
+                        </span>
+                        <span className="text-sm">
+                          {player.first_name || player.username}
+                        </span>
+                      </div>
+                      <span className="text-sm font-bold">
+                        {player.total_matches} matches
                       </span>
                     </div>
-                    <span className="text-sm font-bold">
-                      {player.total_matches} matches
-                    </span>
-                  </div>
-                ))}
+                  ))
+              ) : (
+                <p className="text-gray-400 text-sm">No data available</p>
+              )}
             </div>
           </div>
         </div>

@@ -237,7 +237,10 @@ function HomeContent() {
     }
   };
 
-  const refreshTournaments = async () => {
+  const refreshTournaments = async (
+    newTournamentId?: string,
+    deletedTournamentId?: string
+  ) => {
     try {
       const tournaments = await getTournaments();
 
@@ -250,8 +253,28 @@ function HomeContent() {
       setTournaments(sortedTournaments);
       setUserCreatedTournaments(sortedTournaments);
 
-      // If the newly created tournament is not in the current selection, select the most recent one
-      if (sortedTournaments.length > 0 && !selectedTournament) {
+      // If a tournament was deleted and it was the currently selected one, clear the selection
+      if (deletedTournamentId && selectedTournament === deletedTournamentId) {
+        setSelectedTournament('');
+        setTournament(null);
+        // Select the most recent tournament if available
+        if (sortedTournaments.length > 0) {
+          const mostRecentTournament = sortedTournaments[0];
+          setSelectedTournament(mostRecentTournament.id);
+          setTournament(mostRecentTournament);
+        }
+      }
+      // If a new tournament ID is provided, set it as the selected tournament
+      else if (newTournamentId) {
+        setSelectedTournament(newTournamentId);
+        const newTournament = sortedTournaments.find(
+          t => t.id === newTournamentId
+        );
+        if (newTournament) {
+          setTournament(newTournament);
+        }
+      } else if (sortedTournaments.length > 0 && !selectedTournament) {
+        // If no specific tournament ID provided and no current selection, select the most recent tournament
         const mostRecentTournament = sortedTournaments[0];
         setSelectedTournament(mostRecentTournament.id);
         setTournament(mostRecentTournament);
