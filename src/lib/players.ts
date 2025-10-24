@@ -10,7 +10,7 @@ import {
 export async function getPlayers(): Promise<User[]> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    const response = await axiosInstance.get('/players/');
+    const response = await axiosInstance.get('/user/');
     return unwrapListResponse(response.data);
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -35,7 +35,7 @@ export async function getPlayers(): Promise<User[]> {
 export async function createPlayer(name: string): Promise<Player | null> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    const response = await axiosInstance.post('/players/', { name });
+    const response = await axiosInstance.post('/user/register', { name });
     const { data } = response.data;
     return data;
   } catch (error) {
@@ -47,7 +47,7 @@ export async function createPlayer(name: string): Promise<Player | null> {
 export async function deletePlayer(player_id: string): Promise<void> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    await axiosInstance.delete(`/player/${player_id}/`);
+    await axiosInstance.delete(`/user/${player_id}`);
   } catch (error) {
     debugError('Error deleting player:', error);
   }
@@ -59,7 +59,7 @@ export async function updatePlayer(
 ): Promise<void> {
   try {
     const axiosInstance = createAuthenticatedRequest();
-    await axiosInstance.put(`/player/${player_id}/`, { name: newName });
+    await axiosInstance.put(`/user/${player_id}`, { name: newName });
   } catch (error) {
     debugError('Error updating player:', error);
   }
@@ -75,7 +75,7 @@ export async function getPlayerStats(
       'getPlayerStats axios instance baseURL:',
       axiosInstance.defaults.baseURL
     );
-    const response = await axiosInstance.get(`/players/${player_id}/stats`);
+    const response = await axiosInstance.get(`/user/${player_id}/stats`);
     const { data } = response.data;
     return data;
   } catch (error) {
@@ -114,7 +114,7 @@ export async function getCurrentUserStats(
     // Add cache-busting parameter to avoid browser caching issues
     const timestamp = Date.now();
     const response = await axiosInstance.get(
-      `/players/${player_id}/stats?_t=${timestamp}`
+      `/user/${player_id}/stats?_t=${timestamp}`
     );
 
     // The API returns a single UserDetailedStats object, not an array
@@ -162,7 +162,7 @@ export async function updateUserProfile(
     if (id == '') {
       return null;
     }
-    const response = await axiosInstance.put(`/players/${id}`, payload);
+    const response = await axiosInstance.put(`/user/${id}`, payload);
     const { data } = response.data;
     return data;
   } catch (error) {
