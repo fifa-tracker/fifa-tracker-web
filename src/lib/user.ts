@@ -6,7 +6,11 @@ import {
   UserSearchResult,
 } from '@/types';
 import axios, { AxiosError } from 'axios';
-import { createAuthenticatedRequest, debugError } from './shared';
+import {
+  createAuthenticatedRequest,
+  debugError,
+  unwrapListResponse,
+} from './shared';
 
 export async function sendFriendRequest(
   friend_id: string
@@ -16,7 +20,8 @@ export async function sendFriendRequest(
     const response = await axiosInstance.post('/user/send-friend-request', {
       friend_id,
     });
-    return response.data;
+    const { data } = response.data;
+    return data;
   } catch (error) {
     debugError('Error sending friend request:', error);
     if (axios.isAxiosError(error)) {
@@ -46,7 +51,8 @@ export async function getFriendRequests(): Promise<FriendRequestsResponse> {
   try {
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.get('/user/friend-requests');
-    return response.data;
+    const { data } = response.data;
+    return data;
   } catch (error) {
     debugError('Error fetching friend requests:', error);
     if (axios.isAxiosError(error)) {
@@ -63,7 +69,7 @@ export async function getFriends(): Promise<Friend[]> {
   try {
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.get('/user/friends');
-    return response.data;
+    return unwrapListResponse(response.data);
   } catch (error) {
     debugError('Error fetching friends:', error);
     if (axios.isAxiosError(error)) {
@@ -84,7 +90,7 @@ export async function getRecentNonFriendOpponents(): Promise<
     const response = await axiosInstance.get(
       '/user/recent-non-friend-opponents'
     );
-    return response.data;
+    return unwrapListResponse(response.data);
   } catch (error) {
     debugError('Error fetching recent non-friend opponents:', error);
     if (axios.isAxiosError(error)) {
@@ -105,7 +111,8 @@ export async function acceptFriendRequest(
     const response = await axiosInstance.post('/user/accept-friend-request', {
       friend_id,
     });
-    return response.data;
+    const { data } = response.data;
+    return data;
   } catch (error) {
     debugError('Error accepting friend request:', error);
     if (axios.isAxiosError(error)) {
@@ -135,7 +142,8 @@ export async function rejectFriendRequest(
     const response = await axiosInstance.post('/user/reject-friend-request', {
       friend_id,
     });
-    return response.data;
+    const { data } = response.data;
+    return data;
   } catch (error) {
     debugError('Error rejecting friend request:', error);
     if (axios.isAxiosError(error)) {
@@ -167,7 +175,7 @@ export async function searchUsers(
       query,
       limit,
     });
-    return response.data;
+    return unwrapListResponse(response.data);
   } catch (error) {
     debugError('Error searching users:', error);
     if (axios.isAxiosError(error)) {

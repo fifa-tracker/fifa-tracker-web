@@ -1,3 +1,4 @@
+import { PaginatedResponse } from '@/types';
 import axios from 'axios';
 
 /**
@@ -247,13 +248,11 @@ export const createAuthenticatedRequest = () => {
               refresh_token: refreshTokenValue,
             });
 
-            if (response.data.access_token) {
-              localStorage.setItem(
-                'fifa-tracker-token',
-                response.data.access_token
-              );
+            const { data } = response.data;
+            if (data?.access_token) {
+              localStorage.setItem('fifa-tracker-token', data.access_token);
               // Retry the original request with the new token
-              error.config.headers.Authorization = `Bearer ${response.data.access_token}`;
+              error.config.headers.Authorization = `Bearer ${data.access_token}`;
               return axiosInstance.request(error.config);
             }
           } catch (_refreshError) {
@@ -285,3 +284,31 @@ export const createAuthenticatedRequest = () => {
 
   return axiosInstance;
 };
+
+// Response unwrapping utilities
+export function unwrapResponse<T>(response: {
+  success: boolean;
+  data: T | null;
+  message: string;
+}): T | null {
+  return response.data;
+}
+
+export function unwrapListResponse<T>(response: {
+  success: boolean;
+  data: { [key: string]: T[] };
+  message: string;
+}): T[] {
+  const { data } = response;
+  // Get the first array from the data object (since key is dynamic)
+  const arrays = Object.values(data);
+  return arrays.length > 0 ? arrays[0] : [];
+}
+
+export function unwrapPaginatedResponse<T>(response: {
+  success: boolean;
+  data: PaginatedResponse<T>;
+  message: string;
+}): PaginatedResponse<T> {
+  return response.data;
+}

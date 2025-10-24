@@ -11,6 +11,8 @@ import {
   debugError,
   debugLog,
   debugWarn,
+  unwrapListResponse,
+  unwrapPaginatedResponse,
 } from './shared';
 
 export async function getTournaments(): Promise<Tournament[]> {
@@ -19,7 +21,7 @@ export async function getTournaments(): Promise<Tournament[]> {
     debugLog('Making request to tournaments endpoint...');
     const response = await axiosInstance.get('/tournaments/');
     debugLog('Tournaments response:', response.data);
-    return response.data;
+    return unwrapListResponse(response.data);
   } catch (error) {
     debugError('Error fetching tournaments:', error);
     if (axios.isAxiosError(error)) {
@@ -46,7 +48,8 @@ export async function getTournament(
   try {
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.get(`/tournaments/${tournament_id}/`);
-    return response.data;
+    const { data } = response.data;
+    return data;
   } catch (error) {
     debugError('Error fetching tournament:', error);
     return null;
@@ -76,7 +79,8 @@ export async function updateTournament(
       `/tournaments/${tournament_id}/`,
       payload
     );
-    return response.data;
+    const { data } = response.data;
+    return data;
   } catch (error) {
     debugError('Error updating tournament:', error);
     return null;
@@ -95,7 +99,8 @@ export async function createTournament(
       description,
       player_ids,
     });
-    return response.data;
+    const { data } = response.data;
+    return data;
   } catch (error) {
     debugError('Error creating tournament:', error);
     return null;
@@ -173,6 +178,7 @@ export async function getTournamentPlayers(
     const response = await axiosInstance.get(
       `/tournaments/${tournament_id}/players`
     );
+    // This endpoint returns unwrapped array directly
     return response.data;
   } catch (error) {
     debugError('Error fetching tournament players:', error);
@@ -212,7 +218,7 @@ export async function getTournamentMatches(
         },
       }
     );
-    return response.data;
+    return unwrapPaginatedResponse<MatchResult>(response.data);
   } catch (error) {
     debugError('Error fetching tournament matches:', error);
     return {
@@ -243,6 +249,7 @@ export async function getTournamentStandings(
     const response = await axiosInstance.get(
       `/tournaments/${tournament_id}/stats`
     );
+    // This endpoint returns unwrapped array directly
     return response.data;
   } catch (error) {
     debugError('Error fetching tournament standings:', error);

@@ -1,6 +1,11 @@
 import { Match, MatchResult } from '@/types';
 import axios from 'axios';
-import { API_BASE_URL, createAuthenticatedRequest, debugError } from './shared';
+import {
+  API_BASE_URL,
+  createAuthenticatedRequest,
+  debugError,
+  unwrapListResponse,
+} from './shared';
 
 export async function recordMatch(
   player1_id: string,
@@ -43,7 +48,8 @@ export async function recordMatch(
     }
 
     const response = await axiosInstance.post('/matches/', matchData);
-    return response.data;
+    const { data } = response.data;
+    return data;
   } catch (error) {
     debugError('Error recording match:', error);
 
@@ -81,7 +87,7 @@ export async function getMatchHistory(): Promise<MatchResult[]> {
   try {
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.get('/matches/');
-    return response.data;
+    return unwrapListResponse(response.data);
   } catch (error) {
     debugError('Error fetching match history:', error);
     return [];
@@ -116,7 +122,8 @@ export async function getMatchById(match_id: string): Promise<Match | null> {
   try {
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.get(`/matches/${match_id}`);
-    return response.data;
+    const { data } = response.data;
+    return data;
   } catch (error) {
     debugError('Error fetching match by ID:', error);
     return null;

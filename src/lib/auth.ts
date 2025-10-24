@@ -13,7 +13,8 @@ export async function register(
     const payload = { first_name, last_name, email, password, username };
 
     const response = await axios.post(`${API_BASE_URL}/auth/register`, payload);
-    return response.data;
+    const { data } = response.data;
+    return data;
   } catch (error) {
     debugError('Error registering:', error);
     return null;
@@ -29,21 +30,19 @@ export async function login(
     const payload = { username: identifier, password };
 
     const response = await axios.post(`${API_BASE_URL}/auth/login`, payload);
+    const { data } = response.data;
 
     // Store the access token if it's included in the response
-    if (response.data.access_token) {
-      localStorage.setItem('fifa-tracker-token', response.data.access_token);
+    if (data?.access_token) {
+      localStorage.setItem('fifa-tracker-token', data.access_token);
     }
 
     // Store refresh token if provided
-    if (response.data.refresh_token) {
-      localStorage.setItem(
-        'fifa-tracker-refresh-token',
-        response.data.refresh_token
-      );
+    if (data?.refresh_token) {
+      localStorage.setItem('fifa-tracker-refresh-token', data.refresh_token);
     }
 
-    return response.data;
+    return data;
   } catch (error) {
     debugError('Error logging in:', error);
     if (axios.isAxiosError(error)) {
@@ -65,7 +64,7 @@ export async function login(
 export async function onGoogleSignInClick(): Promise<void> {
   try {
     const response = await axios.get(`${API_BASE_URL}/auth/google/login`);
-    const data = await response.data;
+    const { data } = response.data;
     window.location.href = data.auth_url;
   } catch (error) {
     debugError('Error initiating Google Sign-In:', error);
@@ -89,7 +88,7 @@ export async function handleGoogleCallback(
     // Fetch user data using the token
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.get('/auth/me');
-    const userData = response.data;
+    const { data: userData } = response.data;
 
     // Store user data
     localStorage.setItem('fifa-tracker-user', JSON.stringify(userData));
@@ -114,10 +113,11 @@ export async function refreshToken(): Promise<string | null> {
     const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
       refresh_token: refreshToken,
     });
+    const { data } = response.data;
 
-    if (response.data.access_token) {
-      localStorage.setItem('fifa-tracker-token', response.data.access_token);
-      return response.data.access_token;
+    if (data?.access_token) {
+      localStorage.setItem('fifa-tracker-token', data.access_token);
+      return data.access_token;
     }
 
     return null;
@@ -134,7 +134,8 @@ export async function getCurrentUser(): Promise<User | null> {
   try {
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.get('/auth/me');
-    return response.data;
+    const { data } = response.data;
+    return data;
   } catch (error) {
     debugError('Error fetching current user:', error);
     return null;
@@ -148,7 +149,8 @@ export async function checkUsernameAvailability(
     const axiosInstance = createAuthenticatedRequest();
     const payload = { username: username };
     const response = await axiosInstance.post(`/auth/check-username`, payload);
-    return !response.data.exists;
+    const { data } = response.data;
+    return !data.exists;
   } catch (error) {
     debugError('Error checking username availability:', error);
     // If the API call fails, we'll assume the username is taken to be safe

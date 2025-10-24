@@ -9,6 +9,25 @@ export interface PaginatedResponse<T> {
   has_previous: boolean;
 }
 
+// API Response wrapper interfaces
+export interface StandardResponse<T> {
+  success: boolean;
+  data: T | null;
+  message: string;
+}
+
+export interface StandardListResponse<T> {
+  success: boolean;
+  data: { [key: string]: T[] };
+  message: string;
+}
+
+export interface StandardPaginatedResponse<T> {
+  success: boolean;
+  data: PaginatedResponse<T>;
+  message: string;
+}
+
 export interface Player {
   name: string;
   id: string;

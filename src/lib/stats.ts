@@ -10,11 +10,12 @@ export async function getTable(): Promise<PlayerStats[]> {
     debugLog('getTable: Response received:', response.data);
 
     // Ensure the response data is an array
-    if (Array.isArray(response.data)) {
-      debugLog('getTable: Returning array with', response.data.length, 'items');
-      return response.data;
+    const { data } = response.data;
+    if (Array.isArray(data)) {
+      debugLog('getTable: Returning array with', data.length, 'items');
+      return data;
     } else {
-      debugError('getTable: Response data is not an array:', response.data);
+      debugError('getTable: Response data is not an array:', data);
       return [];
     }
   } catch (error) {
@@ -60,7 +61,8 @@ export async function getHeadToHead(
     const response = await axiosInstance.get(
       `/stats/head-to-head/${player1_id}/${player2_id}`
     );
-    return response.data;
+    const { data } = response.data;
+    return data;
   } catch (error) {
     debugError('Error fetching head-to-head stats:', error);
     return {

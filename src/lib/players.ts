@@ -1,12 +1,17 @@
 import { Player, User, UserDetailedStats } from '@/types';
 import axios, { AxiosError } from 'axios';
-import { createAuthenticatedRequest, debugError, debugLog } from './shared';
+import {
+  createAuthenticatedRequest,
+  debugError,
+  debugLog,
+  unwrapListResponse,
+} from './shared';
 
 export async function getPlayers(): Promise<User[]> {
   try {
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.get('/players/');
-    return response.data;
+    return unwrapListResponse(response.data);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError;
@@ -31,7 +36,8 @@ export async function createPlayer(name: string): Promise<Player | null> {
   try {
     const axiosInstance = createAuthenticatedRequest();
     const response = await axiosInstance.post('/players/', { name });
-    return response.data;
+    const { data } = response.data;
+    return data;
   } catch (error) {
     debugError('Error creating player:', error);
     return null;
@@ -70,7 +76,8 @@ export async function getPlayerStats(
       axiosInstance.defaults.baseURL
     );
     const response = await axiosInstance.get(`/players/${player_id}/stats`);
-    return response.data;
+    const { data } = response.data;
+    return data;
   } catch (error) {
     debugError('Error fetching player stats:', error);
     if (axios.isAxiosError(error)) {
@@ -111,7 +118,8 @@ export async function getCurrentUserStats(
     );
 
     // The API returns a single UserDetailedStats object, not an array
-    return response.data || null;
+    const { data } = response.data;
+    return data || null;
   } catch (error) {
     debugError('Error fetching current user stats:', error);
 
@@ -155,7 +163,8 @@ export async function updateUserProfile(
       return null;
     }
     const response = await axiosInstance.put(`/players/${id}`, payload);
-    return response.data;
+    const { data } = response.data;
+    return data;
   } catch (error) {
     debugError('Error updating user profile:', error);
     return null;
