@@ -69,7 +69,7 @@ function groupMatchesByDate(matches: MatchResult[]): {
 
 export default function MatchHistory({
   matches,
-  isTournamentCompleted: _isTournamentCompleted = false,
+  isTournamentCompleted = false,
   onMatchUpdated: _onMatchUpdated,
   onPageChange,
   currentPage = 1,
@@ -168,15 +168,20 @@ export default function MatchHistory({
                               e.stopPropagation();
                               onMatchClick?.(match);
                             }}
+                            disabled={isTournamentCompleted && match.completed}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                              match.completed
-                                ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                                : 'bg-blue-500 hover:bg-blue-600 text-white'
+                              isTournamentCompleted && match.completed
+                                ? 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                                : match.completed
+                                  ? 'bg-orange-500 hover:bg-orange-600 text-white'
+                                  : 'bg-blue-500 hover:bg-blue-600 text-white'
                             }`}
                             title={
-                              match.completed
-                                ? 'Update this match'
-                                : 'Log this match'
+                              isTournamentCompleted && match.completed
+                                ? 'Tournament completed - cannot update match'
+                                : match.completed
+                                  ? 'Update this match'
+                                  : 'Log this match'
                             }
                           >
                             {match.completed ? 'Update' : 'Log'}
