@@ -371,7 +371,11 @@ export default function LogMatch({
           onClick={handleSubmit}
           disabled={!selectedTournament && !prePopulatedMatch?.id}
         >
-          {prePopulatedMatch?.id ? 'Update Match' : 'Log Match'}
+          {prePopulatedMatch?.id
+            ? 'Update Match'
+            : isTournamentCompleted
+              ? 'Log Independent Match'
+              : 'Log Match'}
         </button>
       </div>
     </div>
