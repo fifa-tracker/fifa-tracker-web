@@ -182,6 +182,13 @@ export async function searchUsers(
       const axiosError = error as AxiosError;
       if (axiosError.response?.status === 401) {
         throw new Error('Authentication required. Please log in again.');
+      } else if (axiosError.response?.status === 403) {
+        const errorData = axiosError.response?.data as Record<string, unknown>;
+        const errorMessage = errorData?.detail as string | undefined;
+        throw new Error(
+          errorMessage ||
+            'Access forbidden: You do not have permission to search users. Please check the backend API documentation at http://localhost:8000/docs#/ to verify the endpoint requirements, or contact support if you believe this is an error.'
+        );
       } else if (axiosError.response?.status === 422) {
         throw new Error('Invalid search query. Please check your input.');
       } else {
